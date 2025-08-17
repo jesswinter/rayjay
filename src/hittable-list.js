@@ -1,5 +1,6 @@
 import { Hit } from "./hit.js";
 import { Ray } from "./ray.js";
+import { Interval } from "./interval.js";
 
 /**
  * A list of hittable objects that can be raycast against.
@@ -23,17 +24,17 @@ export class HittableList {
    * Cast a ray into the world and return Hit if anything was hit
    *
    * @param {Ray} ray
-   * @param {number} tMin
-   * @param {number} tMax
+   * @param {Interval} interval - interval along ray to test for hits
    * @returns {Hit|null}
    */
-  hit(ray, tMin, tMax) {
-    let closestTSoFar = tMax;
+  hit(ray, interval) {
     let closestHit = null;
+    const closestInterval = interval.clone();
+
     for (const obj of this.objects) {
-      const h = obj.hit(ray, tMin, closestTSoFar);
+      const h = obj.hit(ray, closestInterval);
       if (h !== null) {
-        closestTSoFar = h.t;
+        closestInterval.max = h.t;
         closestHit = h;
       }
     }

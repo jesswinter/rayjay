@@ -1,7 +1,8 @@
 import { Vec3 } from "./vec3.js";
 import { Ray } from "./ray.js";
-import { HittableList } from "./hittablelist.js";
+import { HittableList } from "./hittable-list.js";
 import { Sphere } from "./sphere.js";
+import { Interval } from "./interval.js";
 
 function degreesToRadians(degrees) {
   return (degrees * Math.PI) / 180;
@@ -14,16 +15,10 @@ function degreesToRadians(degrees) {
  * @returns {Vec3} r, g, b color
  */
 function rayColor(ray, world) {
-  const h = world.hit(ray, 0, Infinity);
+  const h = world.hit(ray, new Interval(0, Infinity));
   if (h !== null) {
     return new Vec3(1, 1, 1).add(h.normal).mul(0.5);
   }
-
-  // const t = hitSphere(new Vec3(0, 0, -1), 0.5, ray);
-  // if (t > 0.0) {
-  //   const normal = ray.at(t).sub(new Vec3(0, 0, -1)).normalize();
-  //   return new Vec3(1, 1, 1).add(normal).mul(0.5);
-  // }
 
   const unitDir = Vec3.unit(ray.dir);
   const a = 0.5 * (unitDir.y + 1.0);
@@ -82,8 +77,6 @@ for (let j = 0; j < imageHeight; ++j) {
     const ray = new Ray(cameraCenter, rayDir);
 
     const pixelColor = rayColor(ray, world);
-
-    // const pixel = new Vec3(i / (imageWidth - 1), j / (imageHeight - 1), 0);
 
     process.stdout.write(`${pixelColor.toColorString()}\n`);
   }

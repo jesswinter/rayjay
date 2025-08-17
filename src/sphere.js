@@ -1,6 +1,7 @@
 import { Vec3 } from "./vec3.js";
 import { Ray } from "./ray.js";
 import { Hit } from "./hit.js";
+import { Interval } from "./interval.js";
 
 export class Sphere {
   /**
@@ -15,11 +16,10 @@ export class Sphere {
 
   /**
    * @param {Ray} ray
-   * @param {number} tMin - minimum t where a hit can occur
-   * @param {number} tMax - maximum t where a hit can occur
+   * @param {Interval} interval - interrval along ray to test
    * @returns {Hit|null}
    */
-  hit(ray, tMin, tMax) {
+  hit(ray, interval) {
     const oc = Vec3.sub(this.center, ray.origin);
     const a = ray.dir.lengthSquared;
     const h = Vec3.dot(ray.dir, oc);
@@ -34,9 +34,9 @@ export class Sphere {
 
     // Find the nearest root that lies in the acceptable range
     let root = (h - sqrtD) / a;
-    if (root <= tMin || tMax <= root) {
+    if (!interval.surrounds(root)) {
       root = (h + sqrtD) / a;
-      if (root <= tMin || tMax <= root) {
+      if (!interval.surrounds(root)) {
         return null;
       }
     }
