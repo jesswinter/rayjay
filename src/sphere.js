@@ -5,7 +5,6 @@ import { Interval } from "./interval.js";
 
 export class Sphere {
   /**
-   * @constructor
    * @param {Vec3} center
    * @param {number} radius
    */

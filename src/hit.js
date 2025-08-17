@@ -28,7 +28,6 @@ export class Hit {
   }
 
   /**
-   * @constructor
    * @param {Vec3} contact - contact point
    * @param {Vec3} normal - outward noraml if the hit was from the front; inward normal if the hit was from the back
    * @param {number} t - t along the ray

@@ -2,7 +2,6 @@ import { Vec3 } from "./vec3.js";
 
 export class Ray {
   /**
-   * @constructor
    * @param {Vec3} origin
    * @param {Vec3} dir
    */
