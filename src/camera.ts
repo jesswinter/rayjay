@@ -7,11 +7,13 @@ export class Camera {
   aspectRatio = 16.0 / 9.0;
   imageWidth = 400;
   cameraCenter = new Vec3(0, 0, 0);
+  samplesPerPixel = 10;
 
   /**
    * Render world to an image
    */
-  render(world:EntityList) {
+  render(world: EntityList) {
+    Object.freeze(this.cameraCenter);
     this.#initialize();
 
     process.stderr.write("Rayjay gonna do what Rayjay does!\n");
@@ -22,15 +24,13 @@ export class Camera {
       process.stderr.write(`\rScanlines remaining: ${this.#imageHeight - j}`);
 
       for (let i = 0; i < this.imageWidth; ++i) {
-        const pixelCenter = Vec3.mul(this.#pixelDeltaU, i)
-          .add(Vec3.mul(this.#pixelDeltaV, j))
-          .add(this.#pixel00Loc);
-        const rayDir = Vec3.sub(pixelCenter, this.cameraCenter);
-        const ray = new Ray(this.cameraCenter, rayDir);
-
-        const pixelColor = this.#rayColor(ray, world);
-
-        process.stdout.write(`${pixelColor.toColorString()}\n`);
+        let pixelColor = new Vec3(0, 0, 0);
+        for (let sample = 0; sample < this.samplesPerPixel; ++sample) {
+          let ray = this.#getRay(i, j);
+          pixelColor.add(this.#rayColor(ray, world));
+        }
+        pixelColor.mul(this.#pixelSamplesScale);
+        writePpmColor(pixelColor);
       }
     }
 
@@ -41,6 +41,7 @@ export class Camera {
   #pixel00Loc: Vec3;
   #pixelDeltaU: Vec3;
   #pixelDeltaV: Vec3;
+  #pixelSamplesScale: number;
 
   #initialize(): void {
     // Image
@@ -61,8 +62,8 @@ export class Camera {
     const viewportVVec = new Vec3(0, -viewportHeight, 0);
 
     // Horizontal and vertical delta vectors from pixel to pixel
-    this.#pixelDeltaU = Vec3.div(viewportUVec, this.imageWidth);
-    this.#pixelDeltaV = Vec3.div(viewportVVec, this.#imageHeight);
+    this.#pixelDeltaU = Object.freeze(Vec3.div(viewportUVec, this.imageWidth));
+    this.#pixelDeltaV = Object.freeze(Vec3.div(viewportVVec, this.#imageHeight));
 
     // Location of upper left pixel
     const viewportUpperLeft = Vec3.sub(
@@ -74,6 +75,24 @@ export class Camera {
     this.#pixel00Loc = Vec3.add(this.#pixelDeltaU, this.#pixelDeltaV)
       .mul(0.5)
       .add(viewportUpperLeft);
+
+    this.#pixelSamplesScale = 1 / this.samplesPerPixel;
+  }
+
+  /** Generates a sample Ray inside the pixel square at i, j */
+  #getRay(i: number, j: number): Ray {
+    let offset = this.#sampleSquare();
+    const u = Vec3.mul(this.#pixelDeltaU, i + offset.x);
+    const v = Vec3.mul(this.#pixelDeltaV, j + offset.y);
+    const pixelSample = Vec3.add(this.#pixel00Loc, u).add(v);
+
+    return new Ray(this.cameraCenter, pixelSample.sub(this.cameraCenter));
+  }
+
+  /** Generates a random sample point within [-.5,-.5]-[+.5,+.5] unit square */
+  // TODO(jw): sampleDisk
+  #sampleSquare(): Vec3 {
+    return new Vec3(Math.random() - 0.5, Math.random() - 0.5, 0);
   }
 
   /**
@@ -81,7 +100,7 @@ export class Camera {
    * @param ray the ray to cast
    * @returns r, g, b color
    */
-  #rayColor(ray: Ray, world:EntityList): Vec3 {
+  #rayColor(ray: Ray, world: EntityList): Vec3 {
     const h = world.hit(ray, new Interval(0, Infinity));
     if (h !== null) {
       return new Vec3(1, 1, 1).add(h.normal).mul(0.5);
@@ -94,4 +113,13 @@ export class Camera {
 
     return topColor.mul(a).add(botColor.mul(1 - a));
   }
+}
+
+function writePpmColor(color: Vec3) {
+  const intensity = new Interval(0, 0.999);
+  let ir = Math.floor(255.999 * intensity.clamp(color.x));
+  let ig = Math.floor(255.999 * intensity.clamp(color.y));
+  let ib = Math.floor(255.999 * intensity.clamp(color.z));
+
+  process.stdout.write(`${ir} ${ig} ${ib}\n`);
 }

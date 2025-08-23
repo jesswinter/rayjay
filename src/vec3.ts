@@ -134,15 +134,4 @@ export class Vec3 {
   toString(): string {
     return `${this.x} ${this.y} ${this.z}`;
   }
-
-  /**
-   * @returns PPM color string
-   */
-  toColorString(): string {
-    let ir = Math.floor(255.999 * this.x);
-    let ig = Math.floor(255.999 * this.y);
-    let ib = Math.floor(255.999 * this.z);
-
-    return `${ir} ${ig} ${ib}`;
-  }
 }

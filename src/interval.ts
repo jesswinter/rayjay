@@ -15,23 +15,28 @@ export class Interval {
     return new Interval(this.min, this.max);
   }
 
-  /** @returns The length of this Interval. i.e. max - min */
+  /** Length of this Interval. i.e. max - min */
   get length(): number {
     return this.max - this.min;
   }
 
-  /**
-   * @returns is x contained in this interval
-   */
+  /** Is x contained in this interval */
   contains(x: number): boolean {
     return this.min <= x && x <= this.max;
   }
 
-  /**
-   * @returns is x surrounds by this interval
-   */
-  surrounds(x: number) {
+  /** Is x surrounded by this interval */
+  surrounds(x: number): boolean {
     return this.min < x && x < this.max;
+  }
+
+  /** @returns a number clamped to this interval */
+  clamp(x: number): number {
+    if (x < this.min) return this.min;
+
+    if (x > this.max) return this.max;
+
+    return x;
   }
 }
 
