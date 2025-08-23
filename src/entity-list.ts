@@ -1,25 +1,26 @@
 import { Hit } from "./hit.js";
 import { Ray } from "./ray.js";
 import { Interval } from "./interval.js";
+import { Entity } from "./entity.js";
 
 /**
  * A list of hittable objects that can be raycast against.
  *
  * Hittable objects implement `hit(ray, tMin, tMax)` methods that returns a Hit or null
  */
-export class HittableList {
-  objects: any[];
+export class EntityList {
+  entities: Entity[];
 
   constructor() {
-    this.objects = [];
+    this.entities = [];
   }
 
-  add(hittable) {
-    this.objects.push(hittable);
+  add(entity: Entity) {
+    this.entities.push(entity);
   }
 
   clear() {
-    this.objects = [];
+    this.entities = [];
   }
 
   /**
@@ -27,12 +28,12 @@ export class HittableList {
    *
    * @param interval - interval along ray to test for hits
    */
-  hit(ray: Ray, interval:Interval): Hit | null {
+  hit(ray: Ray, interval: Interval): Hit | null {
     let closestHit: Hit | null = null;
     const closestInterval = interval.clone();
 
-    for (const obj of this.objects) {
-      const h = obj.hit(ray, closestInterval);
+    for (const entity of this.entities) {
+      const h = entity.hit(ray, closestInterval);
       if (h !== null) {
         closestInterval.max = h.t;
         closestHit = h;

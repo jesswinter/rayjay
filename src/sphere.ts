@@ -2,8 +2,9 @@ import { Vec3 } from "./vec3.js";
 import { Ray } from "./ray.js";
 import { Hit } from "./hit.js";
 import { Interval } from "./interval.js";
+import { Entity } from "./entity.js";
 
-export class Sphere {
+export class Sphere implements Entity {
   center: Vec3;
   radius: number;
 

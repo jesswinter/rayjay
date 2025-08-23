@@ -1,4 +1,4 @@
-import { HittableList } from "./hittable-list.js";
+import { EntityList } from "./entity-list.js";
 import { Vec3 } from "./vec3.js";
 import { Ray } from "./ray.js";
 import { Interval } from "./interval.js";
@@ -10,9 +10,8 @@ export class Camera {
 
   /**
    * Render world to an image
-   * @param {HittableList} world
    */
-  render(world) {
+  render(world:EntityList) {
     this.#initialize();
 
     process.stderr.write("Rayjay gonna do what Rayjay does!\n");
@@ -80,10 +79,9 @@ export class Camera {
   /**
    * Cast a ray into the world and return color
    * @param ray the ray to cast
-   * @param {HittableList} world
    * @returns r, g, b color
    */
-  #rayColor(ray: Ray, world): Vec3 {
+  #rayColor(ray: Ray, world:EntityList): Vec3 {
     const h = world.hit(ray, new Interval(0, Infinity));
     if (h !== null) {
       return new Vec3(1, 1, 1).add(h.normal).mul(0.5);
