@@ -15,7 +15,13 @@
   ],
   "main": "./src/cli.js",
   "scripts": {
-    "test": "./scripts/runrj.sh"
+    "test": "pnpm build && ./scripts/runrj.sh",
+    "typecheck": "tsc -P . --noEmit",
+    "build": "tsc"
   },
-  "packageManager": "pnpm@10.14.0"
+  "packageManager": "pnpm@10.14.0",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
+  }
 }

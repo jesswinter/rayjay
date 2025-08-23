@@ -4,21 +4,19 @@ import { Hit } from "./hit.js";
 import { Interval } from "./interval.js";
 
 export class Sphere {
-  /**
-   * @param {Vec3} center
-   * @param {number} radius
-   */
-  constructor(center, radius) {
+  center: Vec3;
+  radius: number;
+
+  constructor(center: Vec3, radius: number) {
     this.center = center;
     this.radius = Math.max(0, radius);
   }
 
   /**
-   * @param {Ray} ray
-   * @param {Interval} interval - interrval along ray to test
-   * @returns {Hit|null}
+   * @param ray
+   * @param interval - interrval along ray to test
    */
-  hit(ray, interval) {
+  hit(ray: Ray, interval: Interval): Hit | null {
     const oc = Vec3.sub(this.center, ray.origin);
     const a = ray.dir.lengthSquared;
     const h = Vec3.dot(ray.dir, oc);

@@ -4,13 +4,8 @@ import { Ray } from "./ray.js";
 import { Interval } from "./interval.js";
 
 export class Camera {
-  /** @type {number} */
   aspectRatio = 16.0 / 9.0;
-
-  /** @type {number} */
   imageWidth = 400;
-
-  /** @type {Vec3} */
   cameraCenter = new Vec3(0, 0, 0);
 
   /**
@@ -43,19 +38,12 @@ export class Camera {
     process.stderr.write("\rFin.                    \n");
   }
 
-  /** @type {number} */
-  #imageHeight;
+  #imageHeight: number;
+  #pixel00Loc: Vec3;
+  #pixelDeltaU: Vec3;
+  #pixelDeltaV: Vec3;
 
-  /** @type {Vec3} */
-  #pixel00Loc;
-
-  /** @type {Vec3} */
-  #pixelDeltaU;
-
-  /** @type {Vec3} */
-  #pixelDeltaV;
-
-  #initialize() {
+  #initialize(): void {
     // Image
     this.#imageHeight =
       this.imageWidth / this.aspectRatio < 1
@@ -91,11 +79,11 @@ export class Camera {
 
   /**
    * Cast a ray into the world and return color
-   * @param {Ray} ray the ray to cast
+   * @param ray the ray to cast
    * @param {HittableList} world
-   * @returns {Vec3} r, g, b color
+   * @returns r, g, b color
    */
-  #rayColor(ray, world) {
+  #rayColor(ray: Ray, world): Vec3 {
     const h = world.hit(ray, new Interval(0, Infinity));
     if (h !== null) {
       return new Vec3(1, 1, 1).add(h.normal).mul(0.5);

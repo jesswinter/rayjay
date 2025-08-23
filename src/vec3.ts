@@ -1,93 +1,72 @@
 export class Vec3 {
   /**
-   * @param {Vec3} a
-   * @param {Vec3} b
-   * @returns {number} dot product of a * b
+   * @returns dot product of a * b
    */
-  static dot(a, b) {
+  static dot(a: Vec3, b: Vec3): number {
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
   /**
-   * @static
-   * @param {Vec3} a
-   * @param {Vec3} b
-   * @returns {Vec3} new Vec3 with result of add
+   * @returns new Vec3 with result of add
    */
-  static add(a, b) {
+  static add(a: Vec3, b: Vec3): Vec3 {
     return new Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
   }
 
   /**
-   * @static
-   * @param {Vec3} v
-   * @param {number} s
-   * @returns {Vec3} new Vec3 with result of add
+   * @returns new Vec3 with result of add
    */
-  static addScalar(v, s) {
+  static addScalar(v: Vec3, s: number): Vec3 {
     return new Vec3(v.x + s, v.y + s, v.z + s);
   }
 
   /**
-   * @static
-   * @param {Vec3} a
-   * @param {Vec3} b
-   * @returns {Vec3} new Vec3 with result of sub
+   * @returns new Vec3 with result of sub
    */
-  static sub(a, b) {
+  static sub(a: Vec3, b: Vec3): Vec3 {
     return new Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
   }
 
   /**
-   * @static
-   * @param {Vec3} vec
-   * @param {number} s
-   * @returns {Vec3} new Vec3 with result of mul
+   * @returns new Vec3 with result of mul
    */
-  static mul(vec, s) {
+  static mul(vec: Vec3, s: number): Vec3 {
     return new Vec3(vec.x * s, vec.y * s, vec.z * s);
   }
 
   /**
-   * @static
-   * @param {Vec3} vec
-   * @param {number} s
-   * @returns {Vec3} new Vec3 with result of div
+   * @returns new Vec3 with result of div
    */
-  static div(vec, s) {
+  static div(vec: Vec3, s: number): Vec3 {
     return new Vec3(vec.x / s, vec.y / s, vec.z / s);
   }
 
   /**
-   * @static
-   * @param {Vec3} dir
-   * @returns {Vec3} unit vector pointing in the direction of dir
+   * @returns unit vector pointing in the direction of dir
    */
-  static unit(dir) {
+  static unit(dir: Vec3): Vec3 {
     return Vec3.div(dir, dir.length);
   }
 
-  /**
-   * @param {number} x
-   * @param {number} y
-   * @param {number} z
-   */
-  constructor(x, y, z) {
+  x: number;
+  y: number;
+  z: number;
+
+  constructor(x: number, y: number, z: number) {
     this.x = x;
     this.y = y;
     this.z = z;
   }
 
   /** @returns a copy of this Vec3 */
-  clone() {
+  clone(): Vec3 {
     return new Vec3(this.x, this.y, this.z);
   }
 
   /**
    * Negate and assign result to this Vec3
-   * @returns {Vec3} this Vec3
    */
-  negate() {
+  negate(): Vec3 {
     this.x = -this.x;
     this.y = -this.y;
     this.z = -this.z;
@@ -96,9 +75,8 @@ export class Vec3 {
 
   /**
    * Normalize this Vec3
-   * @returns {this} 
    */
-  normalize() {
+  normalize(): Vec3 {
     this.div(this.length);
     return this;
   }
@@ -106,9 +84,8 @@ export class Vec3 {
   /**
    * Add v and assign the result to this Vec3
    * @param {Vec3} v
-   * @returns {this}
    */
-  add(v) {
+  add(v: Vec3): Vec3 {
     this.x += v.x;
     this.y += v.y;
     this.z += v.z;
@@ -118,9 +95,8 @@ export class Vec3 {
   /**
    * Subtract v and assign result to this Vec3
    * @param {Vec3} v
-   * @returns {this}
    */
-  sub(v) {
+  sub(v: Vec3): Vec3 {
     this.x -= v.x;
     this.y -= v.y;
     this.z -= v.z;
@@ -129,10 +105,8 @@ export class Vec3 {
 
   /**
    * Multiply s and assign result to this Vec3
-   * @param {number} s
-   * @returns {this}
    */
-  mul(s) {
+  mul(s: number): Vec3 {
     this.x *= s;
     this.y *= s;
     this.z *= s;
@@ -141,41 +115,30 @@ export class Vec3 {
 
   /**
    * Divide by s and assign result to this Vec3
-   * @param {number} s
-   * @returns {this}
    */
-  div(s) {
+  div(s: number): Vec3 {
     this.x /= s;
     this.y /= s;
     this.z /= s;
     return this;
   }
 
-  /**
-   * @readonly
-   * @type {number}
-   */
-  get length() {
+  get length(): number {
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
   }
 
-  /**
-   * @readonly
-   * @type {number}
-   */
-  get lengthSquared() {
+  get lengthSquared(): number {
     return this.x * this.x + this.y * this.y + this.z * this.z;
   }
 
-  /** @returns {string} */
-  toString() {
+  toString(): string {
     return `${this.x} ${this.y} ${this.z}`;
   }
 
   /**
-   * @returns {string} PPM color string
+   * @returns PPM color string
    */
-  toColorString() {
+  toColorString(): string {
     let ir = Math.floor(255.999 * this.x);
     let ig = Math.floor(255.999 * this.y);
     let ib = Math.floor(255.999 * this.z);

@@ -8,6 +8,8 @@ import { Interval } from "./interval.js";
  * Hittable objects implement `hit(ray, tMin, tMax)` methods that returns a Hit or null
  */
 export class HittableList {
+  objects: any[];
+
   constructor() {
     this.objects = [];
   }
@@ -23,12 +25,10 @@ export class HittableList {
   /**
    * Cast a ray into the world and return Hit if anything was hit
    *
-   * @param {Ray} ray
-   * @param {Interval} interval - interval along ray to test for hits
-   * @returns {Hit|null}
+   * @param interval - interval along ray to test for hits
    */
-  hit(ray, interval) {
-    let closestHit = null;
+  hit(ray: Ray, interval:Interval): Hit | null {
+    let closestHit: Hit | null = null;
     const closestInterval = interval.clone();
 
     for (const obj of this.objects) {

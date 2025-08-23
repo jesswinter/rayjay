@@ -2,38 +2,35 @@
  * Defines a numarical interval.
  */
 export class Interval {
-  /**
-   * @param {number} min
-   * @param {number} max
-   */
-  constructor(min, max) {
+  min: number;
+  max: number;
+
+  constructor(min: number, max: number) {
     this.min = min;
     this.max = max;
   }
 
-  /** @returns {Interval} a clone of this interval */
-  clone() {
+  /** @returns a clone of this interval */
+  clone(): Interval {
     return new Interval(this.min, this.max);
   }
 
-  /** @returns {number} The length of this Interval. i.e. max - min */
-  get length() {
+  /** @returns The length of this Interval. i.e. max - min */
+  get length(): number {
     return this.max - this.min;
   }
 
   /**
-   * @param {number} x
-   * @returns {boolean} is x contained in this interval
+   * @returns is x contained in this interval
    */
-  contains(x) {
+  contains(x: number): boolean {
     return this.min <= x && x <= this.max;
   }
 
   /**
-   * @param {number} x
-   * @returns {boolean} is x surrounds by this interval
+   * @returns is x surrounds by this interval
    */
-  surrounds(x) {
+  surrounds(x: number) {
     return this.min < x && x < this.max;
   }
 }
