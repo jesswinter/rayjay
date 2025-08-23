@@ -2,11 +2,20 @@
   "name": "rayjay",
   "version": "0.1.0",
   "type": "module",
-  "main": "./src/rayjay.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Jess Winter",
   "license": "MIT",
+  "author": "Jess Winter",
+  "description": "Raytracer in One Weekend implementation",
+  "bin": {
+    "rayjay": "./bin/rayjay.js"
+  },
+  "keywords": [
+    "raytracyer",
+    "creative-code",
+    "graphics"
+  ],
+  "main": "./src/cli.js",
+  "scripts": {
+    "test": "./scripts/runrj.sh"
+  },
   "packageManager": "pnpm@10.14.0"
 }
