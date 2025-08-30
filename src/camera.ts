@@ -8,6 +8,7 @@ export class Camera {
   imageWidth = 400;
   cameraCenter = new Vec3(0, 0, 0);
   samplesPerPixel = 10;
+  maxDepth = 10;
 
   /**
    * Render world to an image
@@ -21,13 +22,15 @@ export class Camera {
     process.stdout.write(`P3\n${this.imageWidth} ${this.#imageHeight}\n255\n`);
 
     for (let j = 0; j < this.#imageHeight; ++j) {
-      process.stderr.write(`\rScanlines remaining: ${this.#imageHeight - j}`);
+      process.stderr.write(
+        `\rScanlines remaining: ${this.#imageHeight - j}               `
+      );
 
       for (let i = 0; i < this.imageWidth; ++i) {
         let pixelColor = new Vec3(0, 0, 0);
         for (let sample = 0; sample < this.samplesPerPixel; ++sample) {
           let ray = this.#getRay(i, j);
-          pixelColor.add(this.#rayColor(ray, world));
+          pixelColor.add(this.#rayColor(ray, this.maxDepth, world));
         }
         pixelColor.mul(this.#pixelSamplesScale);
         writePpmColor(pixelColor);
@@ -63,7 +66,9 @@ export class Camera {
 
     // Horizontal and vertical delta vectors from pixel to pixel
     this.#pixelDeltaU = Object.freeze(Vec3.div(viewportUVec, this.imageWidth));
-    this.#pixelDeltaV = Object.freeze(Vec3.div(viewportVVec, this.#imageHeight));
+    this.#pixelDeltaV = Object.freeze(
+      Vec3.div(viewportVVec, this.#imageHeight)
+    );
 
     // Location of upper left pixel
     const viewportUpperLeft = Vec3.sub(
@@ -98,14 +103,25 @@ export class Camera {
   /**
    * Cast a ray into the world and return color
    * @param ray the ray to cast
+   * @param depth current depth. reflections will stop when this reaches 0
    * @returns r, g, b color
    */
-  #rayColor(ray: Ray, world: EntityList): Vec3 {
-    const h = world.hit(ray, new Interval(0, Infinity));
+  #rayColor(ray: Ray, depth: number, world: EntityList): Vec3 {
+    if (depth <= 0) {
+      return new Vec3(0, 0, 0);
+    }
+    const h = world.hit(ray, new Interval(0.001, Infinity));
     if (h !== null) {
-      return new Vec3(1, 1, 1).add(h.normal).mul(0.5);
+      const direction = Vec3.randomOnHemisphere(h.normal);
+      const reflectedColor = this.#rayColor(
+        new Ray(h.contact, direction),
+        depth - 1,
+        world
+      );
+      return reflectedColor.mul(0.5);
     }
 
+    // Nothing was hit. Render sky gradient
     const unitDir = Vec3.unit(ray.dir);
     const a = 0.5 * (unitDir.y + 1.0);
     const topColor = new Vec3(0.5, 0.7, 1.0);

@@ -10,4 +10,5 @@ world.add(new Sphere(new Vec3(0, -100.5, -1), 100));
 
 const camera = new Camera();
 camera.samplesPerPixel = 100;
+camera.maxDepth = 50;
 camera.render(world);

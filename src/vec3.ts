@@ -1,51 +1,77 @@
+import { randomRange } from "./utils.js";
+
 export class Vec3 {
-  /**
-   * @returns dot product of a * b
-   */
+  /** dot product of a * b */
   static dot(a: Vec3, b: Vec3): number {
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
-  /**
-   * @returns new Vec3 with result of add
-   */
+  /** new Vec3 with result of add */
   static add(a: Vec3, b: Vec3): Vec3 {
     return new Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
   }
 
-  /**
-   * @returns new Vec3 with result of add
-   */
+  /** new Vec3 with result of add */
   static addScalar(v: Vec3, s: number): Vec3 {
     return new Vec3(v.x + s, v.y + s, v.z + s);
   }
 
-  /**
-   * @returns new Vec3 with result of sub
-   */
+  /** new Vec3 with result of sub */
   static sub(a: Vec3, b: Vec3): Vec3 {
     return new Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
   }
 
-  /**
-   * @returns new Vec3 with result of mul
-   */
+  /** new Vec3 with result of mul */
   static mul(vec: Vec3, s: number): Vec3 {
     return new Vec3(vec.x * s, vec.y * s, vec.z * s);
   }
 
-  /**
-   * @returns new Vec3 with result of div
-   */
+  /** new Vec3 with result of div */
   static div(vec: Vec3, s: number): Vec3 {
     return new Vec3(vec.x / s, vec.y / s, vec.z / s);
   }
 
-  /**
-   * @returns unit vector pointing in the direction of dir
-   */
+  /** unit vector pointing in the direction of dir */
   static unit(dir: Vec3): Vec3 {
     return Vec3.div(dir, dir.length);
+  }
+
+  /** Generates a random Vec3 where each component is >= 0 and < 1. The generated vector is not normalized. */
+  static random(): Vec3 {
+    return new Vec3(Math.random(), Math.random(), Math.random());
+  }
+
+  /** Generates a random Vec3 where each component is between min and max */
+  static randomComponentRange(min: number, max: number): Vec3 {
+    return new Vec3(
+      randomRange(min, max),
+      randomRange(min, max),
+      randomRange(min, max)
+    );
+  }
+
+  /** Generates a random vector on a unit sphere */
+  static randomUnit(): Vec3 {
+    while (true) {
+      const candidate = Vec3.randomComponentRange(-1, 1);
+      const lengthSquared = candidate.lengthSquared;
+      if (lengthSquared <= 1) {
+        const length = Math.sqrt(lengthSquared);
+        if (length > 0) {
+          return candidate.div(length);
+        }
+      }
+    }
+  }
+
+  /** Generate a vector on the hemisphere around the given normal */
+  static randomOnHemisphere(normal: Vec3) {
+    const vecOnSphere = Vec3.randomUnit();
+    if (Vec3.dot(vecOnSphere, normal) > 0) {
+      return vecOnSphere;
+    } else {
+      return vecOnSphere.negate();
+    }
   }
 
   x: number;

@@ -16,6 +16,7 @@
   "main": "./src/cli.js",
   "scripts": {
     "test": "pnpm build && ./scripts/runrj.sh",
+    "dev": "tsc --watch --preserveWatchOutput",
     "typecheck": "tsc -P . --noEmit",
     "build": "tsc"
   },
