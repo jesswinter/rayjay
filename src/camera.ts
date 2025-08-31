@@ -110,11 +110,15 @@ export class Camera {
     if (depth <= 0) {
       return new Vec3(0, 0, 0);
     }
-    const h = world.hit(ray, new Interval(0.001, Infinity));
-    if (h !== null) {
-      const direction = Vec3.randomOnHemisphere(h.normal);
+    const hit = world.hit(ray, new Interval(0.001, Infinity));
+    if (hit !== null) {
+      // const direction = Vec3.randomOnHemisphere(hit.normal);
+
+      // Lambertian Reflection
+      const direction = Vec3.randomUnit().add(hit.normal);
+
       const reflectedColor = this.#rayColor(
-        new Ray(h.contact, direction),
+        new Ray(hit.contact, direction),
         depth - 1,
         world
       );
