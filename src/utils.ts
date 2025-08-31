@@ -6,3 +6,10 @@ export function degreesToRadians(degrees: number): number {
 export function randomRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
+
+export function linearToGamma(colorComponent:number): number {
+  if (colorComponent > 0)
+    return Math.sqrt(colorComponent);
+
+  return 0;
+}

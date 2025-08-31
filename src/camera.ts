@@ -2,6 +2,7 @@ import { EntityList } from "./entity-list.js";
 import { Vec3 } from "./vec3.js";
 import { Ray } from "./ray.js";
 import { Interval } from "./interval.js";
+import { linearToGamma } from "./utils.js";
 
 export class Camera {
   aspectRatio = 16.0 / 9.0;
@@ -122,7 +123,9 @@ export class Camera {
         depth - 1,
         world
       );
-      return reflectedColor.mul(0.5);
+
+      const materialReflectance = 0.5;
+      return reflectedColor.mul(materialReflectance);
     }
 
     // Nothing was hit. Render sky gradient
@@ -136,10 +139,14 @@ export class Camera {
 }
 
 function writePpmColor(color: Vec3) {
+  const r = linearToGamma(color.x);
+  const g = linearToGamma(color.y);
+  const b = linearToGamma(color.z);
+
   const intensity = new Interval(0, 0.999);
-  let ir = Math.floor(255.999 * intensity.clamp(color.x));
-  let ig = Math.floor(255.999 * intensity.clamp(color.y));
-  let ib = Math.floor(255.999 * intensity.clamp(color.z));
+  let ir = Math.floor(255.999 * intensity.clamp(r));
+  let ig = Math.floor(255.999 * intensity.clamp(g));
+  let ib = Math.floor(255.999 * intensity.clamp(b));
 
   process.stdout.write(`${ir} ${ig} ${ib}\n`);
 }
