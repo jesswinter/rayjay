@@ -113,23 +113,19 @@ export class Camera {
     }
     const hit = world.hit(ray, new Interval(0.001, Infinity));
     if (hit !== null) {
-      // const direction = Vec3.randomOnHemisphere(hit.normal);
-
-      // Lambertian Reflection
-      const direction = Vec3.randomUnit().add(hit.normal);
+      const [attenuation, scattered] = hit.material.scatter(ray, hit);
 
       const reflectedColor = this.#rayColor(
-        new Ray(hit.contact, direction),
+        scattered,
         depth - 1,
         world
       );
 
-      const materialReflectance = 0.5;
-      return reflectedColor.mul(materialReflectance);
+      return Color3.mul(attenuation, reflectedColor);
     }
 
     // Nothing was hit. Render sky gradient
-    const unitDir = Vec3.unit(ray.dir);
+    const unitDir = Vec3.unit(ray.direction);
     const a = 0.5 * (unitDir.y + 1.0);
     const topColor = new Color3(0.5, 0.7, 1.0);
     const botColor = new Color3(1, 1, 1);

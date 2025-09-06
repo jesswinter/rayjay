@@ -2,11 +2,11 @@ import { Vec3 } from "./vec3.js";
 
 export class Ray {
   origin: Vec3;
-  dir: Vec3;
+  direction: Vec3;
 
   constructor(origin: Vec3, dir: Vec3) {
     this.origin = origin;
-    this.dir = dir;
+    this.direction = dir;
   }
 
   /**
@@ -16,6 +16,6 @@ export class Ray {
    */
   at(t: number): Vec3 {
     // origin + t*dir
-    return Vec3.mul(this.dir, t).add(this.origin);
+    return Vec3.mul(this.direction, t).add(this.origin);
   }
 }

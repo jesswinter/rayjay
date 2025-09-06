@@ -74,6 +74,12 @@ export class Vec3 {
     }
   }
 
+  /** Returns reflected vector v off a surface with normal */
+  static reflect(v: Vec3, normal: Vec3): Vec3 {
+    // v - 2*dot(v, normal)*normal;
+    return Vec3.sub(v, Vec3.mul(normal, 2 * Vec3.dot(v, normal)));
+  }
+
   x: number;
   y: number;
   z: number;
@@ -97,6 +103,12 @@ export class Vec3 {
     this.y = -this.y;
     this.z = -this.z;
     return this;
+  }
+
+  /** Is this vectors length aproximatly zero */
+  isNearZero(): boolean {
+    const e = 1e-8;
+    return Math.abs(this.x) < e && Math.abs(this.y) < e && Math.abs(this.z) < e;
   }
 
   /**

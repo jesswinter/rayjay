@@ -13,6 +13,10 @@ export class Color3 {
     );
   }
 
+  static mul(a: Color3, b: Color3): Color3 {
+    return new Color3(a.red * b.red, a.green * b.green, a.blue * b.blue);
+  }
+
   red: number;
   green: number;
   blue: number;

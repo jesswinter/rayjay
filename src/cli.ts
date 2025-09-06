@@ -2,11 +2,20 @@ import { Vec3 } from "./vec3.js";
 import { EntityList } from "./entity-list.js";
 import { Sphere } from "./sphere.js";
 import { Camera } from "./camera.js";
+import { Lambertian, Metal } from "./material.js";
+import { Color3 } from "./color3.js";
+
+const groundMaterial = new Lambertian(new Color3(0.8, 0.8, 0));
+const centerMaterial = new Lambertian(new Color3(0.1, 0.2, 0.5));
+const leftMaterial = new Metal(new Color3(0.8, 0.8, 0.8));
+const rightMaterial = new Metal(new Color3(0.8, 0.6, 0.2));
 
 // World
 const world = new EntityList();
-world.add(new Sphere(new Vec3(0, 0, -1), 0.5));
-world.add(new Sphere(new Vec3(0, -100.5, -1), 100));
+world.add(new Sphere(new Vec3(0, -100.5, -1), 100, groundMaterial));
+world.add(new Sphere(new Vec3(0, 0, -1.2), 0.5, centerMaterial));
+world.add(new Sphere(new Vec3(-1, 0, -1), 0.5, leftMaterial));
+world.add(new Sphere(new Vec3(1, 0, -1), 0.5, rightMaterial));
 
 const camera = new Camera();
 camera.samplesPerPixel = 100;
