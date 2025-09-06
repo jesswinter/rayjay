@@ -1,8 +1,8 @@
 import { EntityList } from "./entity-list.js";
 import { Vec3 } from "./vec3.js";
+import { Color3 } from "./color3.js";
 import { Ray } from "./ray.js";
 import { Interval } from "./interval.js";
-import { linearToGamma } from "./utils.js";
 
 export class Camera {
   aspectRatio = 16.0 / 9.0;
@@ -28,7 +28,7 @@ export class Camera {
       );
 
       for (let i = 0; i < this.imageWidth; ++i) {
-        let pixelColor = new Vec3(0, 0, 0);
+        let pixelColor = new Color3(0, 0, 0);
         for (let sample = 0; sample < this.samplesPerPixel; ++sample) {
           let ray = this.#getRay(i, j);
           pixelColor.add(this.#rayColor(ray, this.maxDepth, world));
@@ -107,9 +107,9 @@ export class Camera {
    * @param depth current depth. reflections will stop when this reaches 0
    * @returns r, g, b color
    */
-  #rayColor(ray: Ray, depth: number, world: EntityList): Vec3 {
+  #rayColor(ray: Ray, depth: number, world: EntityList): Color3 {
     if (depth <= 0) {
-      return new Vec3(0, 0, 0);
+      return new Color3(0, 0, 0);
     }
     const hit = world.hit(ray, new Interval(0.001, Infinity));
     if (hit !== null) {
@@ -131,22 +131,16 @@ export class Camera {
     // Nothing was hit. Render sky gradient
     const unitDir = Vec3.unit(ray.dir);
     const a = 0.5 * (unitDir.y + 1.0);
-    const topColor = new Vec3(0.5, 0.7, 1.0);
-    const botColor = new Vec3(1, 1, 1);
+    const topColor = new Color3(0.5, 0.7, 1.0);
+    const botColor = new Color3(1, 1, 1);
 
     return topColor.mul(a).add(botColor.mul(1 - a));
   }
 }
 
-function writePpmColor(color: Vec3) {
-  const r = linearToGamma(color.x);
-  const g = linearToGamma(color.y);
-  const b = linearToGamma(color.z);
-
+function writePpmColor(color: Color3) {
+  const gammaColor = Color3.linearToGamma(color);
   const intensity = new Interval(0, 0.999);
-  let ir = Math.floor(255.999 * intensity.clamp(r));
-  let ig = Math.floor(255.999 * intensity.clamp(g));
-  let ib = Math.floor(255.999 * intensity.clamp(b));
-
+  const [ir, ig, ib] = gammaColor.to256Components(intensity);
   process.stdout.write(`${ir} ${ig} ${ib}\n`);
 }
