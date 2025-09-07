@@ -113,14 +113,12 @@ export class Camera {
     }
     const hit = world.hit(ray, new Interval(0.001, Infinity));
     if (hit !== null) {
-      const [attenuation, scattered] = hit.material.scatter(ray, hit);
+      const [wasScattered, attenuation, scattered] = hit.material.tryScatter(ray, hit);
+      if (!wasScattered) {
+        return new Color3(0, 0, 0);
+      }
 
-      const reflectedColor = this.#rayColor(
-        scattered,
-        depth - 1,
-        world
-      );
-
+      const reflectedColor = this.#rayColor(scattered, depth - 1, world);
       return Color3.mul(attenuation, reflectedColor);
     }
 
