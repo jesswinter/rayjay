@@ -6,15 +6,24 @@ import { Lambertian, Metal, Dielectric } from "./material.js";
 import { Color3 } from "./color3.js";
 import { randomRange } from "./utils.js";
 
+const groundMaterial = new Lambertian(new Color3(0.8, 0.8, 0));
+const centerMaterial = new Lambertian(new Color3(0.1, 0.2, 0.5));
+const leftMaterial = new Metal(new Color3(0.8, 0.8, 0.8), 0.3);
+const rightMaterial = new Metal(new Color3(0.8, 0.6, 0.2), 1.0);
+
+// World
 const world = new EntityList();
-const groundMaterial = new Lambertian(new Color3(0.5, 0.5, 0.5));
 world.add(new Sphere(new Vec3(0, -1000, 0), 1000, groundMaterial));
 
 const offset = new Vec3(4, 0.2, 0);
 for (let a = -11; a < 11; ++a) {
   for (let b = -11; b < 11; ++b) {
     const chooseMat = Math.random();
-    const center = new Vec3(a+0.9*Math.random(), 0.2, b+0.9*Math.random());
+    const center = new Vec3(
+      a + 0.9 * Math.random(),
+      0.2,
+      b + 0.9 * Math.random(),
+    );
 
     if (Vec3.sub(center, offset).length > 0.9) {
       if (chooseMat < 0.8) {
@@ -52,12 +61,11 @@ camera.samplesPerPixel = 100; // 500
 camera.maxDepth = 50;
 
 camera.vertFov = 20; // 90
-camera.lookFrom = new Vec3(13,2,3);
-camera.lookAt = new Vec3(0,0,0);
+camera.lookFrom = new Vec3(13, 2, 3);
+camera.lookAt = new Vec3(0, 0, 0);
 camera.viewUp = new Vec3(0, 1, 0);
 
 camera.defocusAngle = 0.6;
 camera.focusDist = 10;
 
 camera.render(world);
-
