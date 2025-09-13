@@ -1,4 +1,5 @@
 import { Interval } from "./interval.js";
+import { randomRange } from "./utils.js";
 
 /**
  * An opaque color with components in the range of 0-1
@@ -15,6 +16,19 @@ export class Color3 {
 
   static mul(a: Color3, b: Color3): Color3 {
     return new Color3(a.red * b.red, a.green * b.green, a.blue * b.blue);
+  }
+
+  static random(): Color3 {
+    return new Color3(Math.random(), Math.random(), Math.random());
+  }
+
+  /** Generates a random Color3 where each component is between min and max */
+  static randomComponentRange(min: number, max: number): Color3 {
+    return new Color3(
+      randomRange(min, max),
+      randomRange(min, max),
+      randomRange(min, max),
+    );
   }
 
   red: number;
