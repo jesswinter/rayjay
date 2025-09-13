@@ -7,7 +7,7 @@ import { Color3 } from "./color3.js";
 
 const groundMaterial = new Lambertian(new Color3(0.8, 0.8, 0));
 const centerMaterial = new Lambertian(new Color3(0.1, 0.2, 0.5));
-const leftMaterial = new Dielectric(1.5);
+const leftMaterial = new Dielectric(1 / 1.33);
 const rightMaterial = new Metal(new Color3(0.8, 0.6, 0.2), 1.0);
 
 // World
