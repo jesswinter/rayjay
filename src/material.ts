@@ -69,6 +69,9 @@ export class Metal implements Material {
 
 /** Dielectric surface */
 export class Dielectric implements Material {
+  /** Refractive index in vacuum or air, or the ratio of the material's
+   * refractive index over the refractive index of the enclosing media
+   */
   #refractionIndex: number;
 
   constructor(refractionIndex: number) {
@@ -87,7 +90,11 @@ export class Dielectric implements Material {
     const sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
 
     let direction;
-    if (ri * sinTheta > 1) {
+    const cannotRefract = ri * sinTheta > 1;
+    if (
+      cannotRefract ||
+      Dielectric.#reflectance(cosTheta, ri) > Math.random()
+    ) {
       // cannot refract, so reflect
       direction = Vec3.reflect(unitDirection, hit.normal);
     } else {
@@ -96,5 +103,12 @@ export class Dielectric implements Material {
     }
 
     return [true, new Color3(1, 1, 1), new Ray(hit.contact, direction)];
+  }
+
+  static #reflectance(cosine: number, refractionIndex: number) {
+    // Use Schlick's approximation for reflectance.
+    let r0 = (1 - refractionIndex) / (1 + refractionIndex);
+    r0 = r0 * r0;
+    return r0 + (1 - r0) * Math.pow(1 - cosine, 5);
   }
 }
