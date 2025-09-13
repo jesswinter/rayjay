@@ -3,6 +3,7 @@ import { Vec3 } from "./vec3.js";
 import { Color3 } from "./color3.js";
 import { Ray } from "./ray.js";
 import { Interval } from "./interval.js";
+import { degreesToRadians } from "./utils.js";
 
 export class Camera {
   aspectRatio = 16.0 / 9.0;
@@ -10,6 +11,7 @@ export class Camera {
   cameraCenter = new Vec3(0, 0, 0);
   samplesPerPixel = 10;
   maxDepth = 10;
+  vertFov = 90;
 
   /**
    * Render world to an image
@@ -56,7 +58,9 @@ export class Camera {
 
     // Camera  x: right, y: up, z: forward
     const focalLength = 1.0;
-    const viewportHeight = 2.0;
+    const theta = degreesToRadians(this.vertFov);
+    const h = Math.tan(theta / 2);
+    const viewportHeight = 2 * h * focalLength;
     const viewportWidth =
       (viewportHeight * this.imageWidth) / this.#imageHeight;
 

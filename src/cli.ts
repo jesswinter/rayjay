@@ -5,6 +5,7 @@ import { Camera } from "./camera.js";
 import { Lambertian, Metal, Dielectric } from "./material.js";
 import { Color3 } from "./color3.js";
 
+/* Glass Bubble
 const groundMaterial = new Lambertian(new Color3(0.8, 0.8, 0));
 const centerMaterial = new Lambertian(new Color3(0.1, 0.2, 0.5));
 const leftMaterial = new Dielectric(1.5);
@@ -22,4 +23,25 @@ world.add(new Sphere(new Vec3(1, 0, -1), 0.5, rightMaterial));
 const camera = new Camera();
 camera.samplesPerPixel = 100;
 camera.maxDepth = 50;
+camera.render(world);
+*/
+
+// Camera test
+const world = new EntityList();
+
+const R = Math.cos(Math.PI / 4);
+
+const leftMaterial = new Lambertian(new Color3(0, 0, 1));
+const rightMaterial = new Lambertian(new Color3(1, 0, 0));
+
+world.add(new Sphere(new Vec3(-R, 0, -1), R, leftMaterial));
+world.add(new Sphere(new Vec3(R, 0, -1), R, rightMaterial));
+
+const camera = new Camera();
+camera.aspectRatio = 16.0 / 9.0;
+camera.imageWidth = 400;
+camera.samplesPerPixel = 100;
+camera.maxDepth = 50;
+camera.vertFov = 90;
+
 camera.render(world);
