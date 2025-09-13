@@ -6,6 +6,11 @@ export class Vec3 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
+  /** returns a copy of vec negated */
+  static negate(vec: Vec3): Vec3 {
+    return new Vec3(-vec.x, -vec.y, -vec.z);
+  }
+
   /** new Vec3 with result of add */
   static add(a: Vec3, b: Vec3): Vec3 {
     return new Vec3(a.x + b.x, a.y + b.y, a.z + b.z);
@@ -78,6 +83,19 @@ export class Vec3 {
   static reflect(v: Vec3, normal: Vec3): Vec3 {
     // v - 2*dot(v, normal)*normal;
     return Vec3.sub(v, Vec3.mul(normal, 2 * Vec3.dot(v, normal)));
+  }
+
+  static refract(uv: Vec3, normal: Vec3, etaiOverEtat: number) {
+    // min(-uv * normal, 1)
+    const cosTheta = Math.min(Vec3.dot(Vec3.negate(uv), normal), 1.0);
+
+    // etaiOverEtat * (uv + cosTheta * normal)
+    const rOutPerp = Vec3.mul(normal, cosTheta).add(uv).mul(etaiOverEtat);
+
+    // -sqrt(abs(1 - rOutPerp.lengthSquared)) * normal
+    const rOutParallel = Vec3.mul(normal, -Math.sqrt(Math.abs(1 - rOutPerp.lengthSquared)));
+
+    return rOutPerp.add(rOutParallel);
   }
 
   x: number;

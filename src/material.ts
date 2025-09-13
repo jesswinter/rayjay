@@ -66,3 +66,20 @@ export class Metal implements Material {
     return [wasScattered, this.albedo, scatteredRay];
   }
 }
+
+/** Dielectric surface */
+export class Dielectric implements Material {
+  #refractionIndex: number;
+
+  constructor(refractionIndex: number) {
+    this.#refractionIndex = refractionIndex;
+  }
+
+  tryScatter(ray: Ray, hit: Hit): [boolean, Color3, Ray] {
+    const ri = hit.isFrontFace ? (1/this.#refractionIndex) : this.#refractionIndex; 
+    const unitDirection = Vec3.unit(ray.direction);
+    const refracted = Vec3.refract(unitDirection, hit.normal, ri);
+    return [true, new Color3(1, 1, 1), new Ray(hit.contact, refracted)];
+  }
+
+}
