@@ -6,6 +6,15 @@ export class Vec3 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
+  /** cross product of a x b */
+  static cross(u: Vec3, v: Vec3): Vec3 {
+    return new Vec3(
+      u.y * v.z - u.z * v.y,
+      u.z * v.x - u.x * v.z,
+      u.x * v.y - u.y * v.x,
+    );
+  }
+
   /** returns a copy of vec negated */
   static negate(vec: Vec3): Vec3 {
     return new Vec3(-vec.x, -vec.y, -vec.z);

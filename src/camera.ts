@@ -8,16 +8,19 @@ import { degreesToRadians } from "./utils.js";
 export class Camera {
   aspectRatio = 16.0 / 9.0;
   imageWidth = 400;
-  cameraCenter = new Vec3(0, 0, 0);
   samplesPerPixel = 10;
   maxDepth = 10;
+
   vertFov = 90;
+  lookFrom = new Vec3(0, 0, 0);
+  lookAt = new Vec3(0, 0, -1);
+  viewUp = new Vec3(0, 1, 0);
 
   /**
    * Render world to an image
    */
   render(world: EntityList) {
-    Object.freeze(this.cameraCenter);
+    Object.freeze(this.#cameraCenter);
     this.#initialize();
 
     process.stderr.write("Rayjay gonna do what Rayjay does!\n");
@@ -44,10 +47,14 @@ export class Camera {
   }
 
   #imageHeight: number;
+  #cameraCenter: Vec3;
   #pixel00Loc: Vec3;
   #pixelDeltaU: Vec3;
   #pixelDeltaV: Vec3;
   #pixelSamplesScale: number;
+  #u: Vec3;
+  #v: Vec3;
+  #w: Vec3;
 
   #initialize(): void {
     // Image
@@ -56,18 +63,24 @@ export class Camera {
         ? 1
         : Math.floor(this.imageWidth / this.aspectRatio);
 
+    this.#cameraCenter = this.lookFrom;
+
     // Camera  x: right, y: up, z: forward
-    const focalLength = 1.0;
+    const focalLength = Vec3.sub(this.lookFrom, this.lookAt).length;
     const theta = degreesToRadians(this.vertFov);
     const h = Math.tan(theta / 2);
     const viewportHeight = 2 * h * focalLength;
     const viewportWidth =
       (viewportHeight * this.imageWidth) / this.#imageHeight;
 
+    this.#w = Object.freeze(Vec3.sub(this.lookFrom, this.lookAt).normalize());
+    this.#u = Object.freeze(Vec3.cross(this.viewUp, this.#w).normalize());
+    this.#v = Object.freeze(Vec3.cross(this.#w, this.#u));
+
     // Viewport: u: right, v: down
     // Vectors across the horizontal and down the vertical viewport edges
-    const viewportUVec = new Vec3(viewportWidth, 0, 0);
-    const viewportVVec = new Vec3(0, -viewportHeight, 0);
+    const viewportUVec = Vec3.mul(this.#u, viewportWidth);
+    const viewportVVec = Vec3.negate(this.#v).mul(viewportHeight);
 
     // Horizontal and vertical delta vectors from pixel to pixel
     this.#pixelDeltaU = Object.freeze(Vec3.div(viewportUVec, this.imageWidth));
@@ -77,11 +90,12 @@ export class Camera {
 
     // Location of upper left pixel
     const viewportUpperLeft = Vec3.sub(
-      this.cameraCenter,
-      new Vec3(0, 0, focalLength),
+      this.#cameraCenter,
+      Vec3.mul(this.#w, focalLength),
     )
       .sub(Vec3.div(viewportUVec, 2))
       .sub(Vec3.div(viewportVVec, 2));
+
     this.#pixel00Loc = Vec3.add(this.#pixelDeltaU, this.#pixelDeltaV)
       .mul(0.5)
       .add(viewportUpperLeft);
@@ -96,7 +110,7 @@ export class Camera {
     const v = Vec3.mul(this.#pixelDeltaV, j + offset.y);
     const pixelSample = Vec3.add(this.#pixel00Loc, u).add(v);
 
-    return new Ray(this.cameraCenter, pixelSample.sub(this.cameraCenter));
+    return new Ray(this.#cameraCenter, pixelSample.sub(this.#cameraCenter));
   }
 
   /** Generates a random sample point within [-.5,-.5]-[+.5,+.5] unit square */
