@@ -16,6 +16,9 @@ export class Camera {
   lookAt = new Vec3(0, 0, -1);
   viewUp = new Vec3(0, 1, 0);
 
+  defocusAngle = 0;
+  focusDist = 10;
+
   /**
    * Render world to an image
    */
@@ -55,6 +58,8 @@ export class Camera {
   #u: Vec3;
   #v: Vec3;
   #w: Vec3;
+  #defocusDiskU: Vec3;
+  #defocusDiskV: Vec3;
 
   #initialize(): void {
     // Image
@@ -63,13 +68,12 @@ export class Camera {
         ? 1
         : Math.floor(this.imageWidth / this.aspectRatio);
 
-    this.#cameraCenter = this.lookFrom;
+    this.#cameraCenter = Object.freeze(this.lookFrom.clone());
 
     // Camera  x: right, y: up, z: forward
-    const focalLength = Vec3.sub(this.lookFrom, this.lookAt).length;
     const theta = degreesToRadians(this.vertFov);
     const h = Math.tan(theta / 2);
-    const viewportHeight = 2 * h * focalLength;
+    const viewportHeight = 2 * h * this.focusDist;
     const viewportWidth =
       (viewportHeight * this.imageWidth) / this.#imageHeight;
 
@@ -91,10 +95,15 @@ export class Camera {
     // Location of upper left pixel
     const viewportUpperLeft = Vec3.sub(
       this.#cameraCenter,
-      Vec3.mul(this.#w, focalLength),
+      Vec3.mul(this.#w, this.focusDist),
     )
       .sub(Vec3.div(viewportUVec, 2))
       .sub(Vec3.div(viewportVVec, 2));
+
+    const defocusRadius =
+      this.focusDist * Math.tan(degreesToRadians(this.defocusAngle / 2));
+    this.#defocusDiskU = Object.freeze(Vec3.mul(this.#u, defocusRadius));
+    this.#defocusDiskV = Object.freeze(Vec3.mul(this.#v, defocusRadius));
 
     this.#pixel00Loc = Vec3.add(this.#pixelDeltaU, this.#pixelDeltaV)
       .mul(0.5)
@@ -110,7 +119,19 @@ export class Camera {
     const v = Vec3.mul(this.#pixelDeltaV, j + offset.y);
     const pixelSample = Vec3.add(this.#pixel00Loc, u).add(v);
 
-    return new Ray(this.#cameraCenter, pixelSample.sub(this.#cameraCenter));
+    const rayOrigin =
+      this.defocusAngle <= 0 ? this.#cameraCenter : this.#defocusDiskSample();
+    const rayDirection = pixelSample.sub(rayOrigin);
+
+    return new Ray(rayOrigin, rayDirection);
+  }
+
+  /** Random point on camera defocus disk */
+  #defocusDiskSample() {
+    let p = Vec3.randomInUnitDisk();
+    return Vec3.mul(this.#defocusDiskU, p.x)
+      .add(Vec3.mul(this.#defocusDiskV, p.y))
+      .add(this.#cameraCenter);
   }
 
   /** Generates a random sample point within [-.5,-.5]-[+.5,+.5] unit square */

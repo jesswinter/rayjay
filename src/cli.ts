@@ -34,4 +34,7 @@ camera.lookFrom = new Vec3(-2, 2, 1);
 camera.lookAt = new Vec3(0, 0, -1);
 camera.viewUp = new Vec3(0, 1, 0);
 
+camera.defocusAngle = 10;
+camera.focusDist = 3.4;
+
 camera.render(world);

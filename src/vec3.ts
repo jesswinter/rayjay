@@ -79,12 +79,21 @@ export class Vec3 {
   }
 
   /** Generate a vector on the hemisphere around the given normal */
-  static randomOnHemisphere(normal: Vec3) {
+  static randomOnHemisphere(normal: Vec3): Vec3 {
     const vecOnSphere = Vec3.randomUnit();
     if (Vec3.dot(vecOnSphere, normal) > 0) {
       return vecOnSphere;
     } else {
       return vecOnSphere.negate();
+    }
+  }
+
+  static randomInUnitDisk(): Vec3 {
+    while (true) {
+      let p = new Vec3(randomRange(-1, 1), randomRange(-1, 1), 0);
+      if (p.lengthSquared < 1) {
+        return p;
+      }
     }
   }
 
