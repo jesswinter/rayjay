@@ -43,5 +43,5 @@ export class Interval {
 export const EMPTY_INTERVAL = Object.freeze(new Interval(Infinity, -Infinity));
 
 export const UNIVERSE_INTERVAL = Object.freeze(
-  new Interval(-Infinity, Infinity)
+  new Interval(-Infinity, Infinity),
 );

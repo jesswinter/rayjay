@@ -18,11 +18,13 @@
     "test": "pnpm build && ./scripts/runrj.sh",
     "dev": "tsc --watch --preserveWatchOutput",
     "typecheck": "tsc -P . --noEmit",
+    "format": "prettier . --write",
     "build": "tsc"
   },
   "packageManager": "pnpm@10.14.0",
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   }
 }

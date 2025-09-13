@@ -9,7 +9,7 @@ export class Color3 {
     return new Color3(
       color.red > 0 ? Math.sqrt(color.red) : 0,
       color.green > 0 ? Math.sqrt(color.green) : 0,
-      color.blue > 0 ? Math.sqrt(color.blue) : 0
+      color.blue > 0 ? Math.sqrt(color.blue) : 0,
     );
   }
 

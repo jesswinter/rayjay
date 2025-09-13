@@ -51,7 +51,7 @@ export class Vec3 {
     return new Vec3(
       randomRange(min, max),
       randomRange(min, max),
-      randomRange(min, max)
+      randomRange(min, max),
     );
   }
 
@@ -93,7 +93,10 @@ export class Vec3 {
     const rOutPerp = Vec3.mul(normal, cosTheta).add(uv).mul(etaiOverEtat);
 
     // -sqrt(abs(1 - rOutPerp.lengthSquared)) * normal
-    const rOutParallel = Vec3.mul(normal, -Math.sqrt(Math.abs(1 - rOutPerp.lengthSquared)));
+    const rOutParallel = Vec3.mul(
+      normal,
+      -Math.sqrt(Math.abs(1 - rOutPerp.lengthSquared)),
+    );
 
     return rOutPerp.add(rOutParallel);
   }

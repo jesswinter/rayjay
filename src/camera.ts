@@ -24,7 +24,7 @@ export class Camera {
 
     for (let j = 0; j < this.#imageHeight; ++j) {
       process.stderr.write(
-        `\rScanlines remaining: ${this.#imageHeight - j}               `
+        `\rScanlines remaining: ${this.#imageHeight - j}               `,
       );
 
       for (let i = 0; i < this.imageWidth; ++i) {
@@ -68,13 +68,13 @@ export class Camera {
     // Horizontal and vertical delta vectors from pixel to pixel
     this.#pixelDeltaU = Object.freeze(Vec3.div(viewportUVec, this.imageWidth));
     this.#pixelDeltaV = Object.freeze(
-      Vec3.div(viewportVVec, this.#imageHeight)
+      Vec3.div(viewportVVec, this.#imageHeight),
     );
 
     // Location of upper left pixel
     const viewportUpperLeft = Vec3.sub(
       this.cameraCenter,
-      new Vec3(0, 0, focalLength)
+      new Vec3(0, 0, focalLength),
     )
       .sub(Vec3.div(viewportUVec, 2))
       .sub(Vec3.div(viewportVVec, 2));
@@ -113,7 +113,10 @@ export class Camera {
     }
     const hit = world.hit(ray, new Interval(0.001, Infinity));
     if (hit !== null) {
-      const [wasScattered, attenuation, scattered] = hit.material.tryScatter(ray, hit);
+      const [wasScattered, attenuation, scattered] = hit.material.tryScatter(
+        ray,
+        hit,
+      );
       if (!wasScattered) {
         return new Color3(0, 0, 0);
       }

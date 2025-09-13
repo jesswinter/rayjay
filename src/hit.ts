@@ -13,7 +13,7 @@ export class Hit {
     t: number,
     contact: Vec3,
     outwardNormal: Vec3,
-    material: Material
+    material: Material,
   ): Hit {
     const isFrontFace = Vec3.dot(ray.direction, outwardNormal) < 0;
 
@@ -34,7 +34,7 @@ export class Hit {
     normal: Vec3,
     t: number,
     isFrontFace: boolean,
-    material: Material
+    material: Material,
   ) {
     this.contact = contact;
     this.normal = normal;

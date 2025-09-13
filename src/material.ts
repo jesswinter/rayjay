@@ -76,11 +76,16 @@ export class Dielectric implements Material {
   }
 
   tryScatter(ray: Ray, hit: Hit): [boolean, Color3, Ray] {
-    const ri = hit.isFrontFace ? (1/this.#refractionIndex) : this.#refractionIndex; 
+    const ri = hit.isFrontFace
+      ? 1 / this.#refractionIndex
+      : this.#refractionIndex;
     const unitDirection = Vec3.unit(ray.direction);
-    const cosTheta = Math.min(Vec3.dot(Vec3.negate(unitDirection), hit.normal), 1);
-    const sinTheta = Math.sqrt(1 - cosTheta*cosTheta);
-    
+    const cosTheta = Math.min(
+      Vec3.dot(Vec3.negate(unitDirection), hit.normal),
+      1,
+    );
+    const sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
+
     let direction;
     if (ri * sinTheta > 1) {
       // cannot refract, so reflect
@@ -92,5 +97,4 @@ export class Dielectric implements Material {
 
     return [true, new Color3(1, 1, 1), new Ray(hit.contact, direction)];
   }
-
 }

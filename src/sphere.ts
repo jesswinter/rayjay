@@ -49,7 +49,7 @@ export class Sphere implements Entity {
       root,
       contact,
       outwardNormal,
-      this.material
+      this.material,
     );
   }
 }
