@@ -1,7 +1,7 @@
-import { Hit } from "./hit.js";
-import { Ray } from "./ray.js";
-import { Interval } from "./interval.js";
-import { Entity } from "./entity.js";
+import { Hit } from "./hit";
+import { Ray } from "./ray";
+import { Interval } from "./interval";
+import { type Entity } from "./entity";
 
 /**
  * A list of hittable objects that can be raycast against.

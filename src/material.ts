@@ -1,7 +1,7 @@
-import { Ray } from "./ray.js";
-import { Hit } from "./hit.js";
-import { Color3 } from "./color3.js";
-import { Vec3 } from "./vec3.js";
+import { Ray } from "./ray";
+import { Hit } from "./hit";
+import { Color3 } from "./color3";
+import { Vec3 } from "./vec3";
 
 /**
  * Surface material of an object

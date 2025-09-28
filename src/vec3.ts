@@ -1,11 +1,6 @@
 import { randomRange } from "./utils.js";
 
 export class Vec3 {
-  /** return the negation of vec */
-  static negate(vec: Vec3): Vec3 {
-    return new Vec3(-vec.x, -vec.y, -vec.z);
-  }
-
   /** dot product of a * b */
   static dot(a: Vec3, b: Vec3): number {
     return a.x * b.x + a.y * b.y + a.z * b.z;

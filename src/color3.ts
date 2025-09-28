@@ -1,5 +1,5 @@
-import { Interval } from "./interval.js";
-import { randomRange } from "./utils.js";
+import { Interval } from "./interval";
+import { randomRange } from "./utils";
 
 /**
  * An opaque color with components in the range of 0-1

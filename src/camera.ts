@@ -1,13 +1,27 @@
-import { EntityList } from "./entity-list.js";
-import { Vec3 } from "./vec3.js";
-import { Color3 } from "./color3.js";
-import { Ray } from "./ray.js";
-import { Interval } from "./interval.js";
-import { degreesToRadians } from "./utils.js";
+import { EntityList } from "./entity-list";
+import { Vec3 } from "./vec3";
+import { Color3 } from "./color3";
+import { Ray } from "./ray";
+import { Interval } from "./interval";
+import { type RenderStatusCallback } from "./renderer";
+import { degreesToRadians } from "./utils";
+
+type RenderContext = {
+  width: number;
+  height: number;
+  pixel00Loc: Vec3;
+  pixelDeltaU: Vec3;
+  pixelDeltaV: Vec3;
+  pixelSamplesScale: number;
+  u: Vec3;
+  v: Vec3;
+  w: Vec3;
+  defocusDiskU: Vec3;
+  defocusDiskV: Vec3;
+};
 
 export class Camera {
-  aspectRatio = 16.0 / 9.0;
-  imageWidth = 400;
+  cameraCenter = new Vec3(0, 0, 0);
   samplesPerPixel = 10;
   maxDepth = 10;
 
@@ -22,116 +36,113 @@ export class Camera {
   /**
    * Render world to an image
    */
-  render(world: EntityList) {
-    Object.freeze(this.#cameraCenter);
-    this.#initialize();
+  render(
+    renderTarget: ImageData,
+    world: EntityList,
+    statusCallback: RenderStatusCallback,
+  ) {
+    Object.freeze(this.cameraCenter);
+    const renderContext = this.#createRenderContext(renderTarget);
 
-    process.stderr.write("Rayjay gonna do what Rayjay does!\n");
+    statusCallback("Rendering");
 
-    process.stdout.write(`P3\n${this.imageWidth} ${this.#imageHeight}\n255\n`);
+    for (let j = 0; j < renderContext.height; ++j) {
+      statusCallback(`Scanlines remaining: ${renderContext.height - j}`);
 
-    for (let j = 0; j < this.#imageHeight; ++j) {
-      process.stderr.write(
-        `\rScanlines remaining: ${this.#imageHeight - j}               `,
-      );
-
-      for (let i = 0; i < this.imageWidth; ++i) {
+      for (let i = 0; i < renderContext.width; ++i) {
         let pixelColor = new Color3(0, 0, 0);
         for (let sample = 0; sample < this.samplesPerPixel; ++sample) {
-          let ray = this.#getRay(i, j);
+          let ray = this.#getRay(renderContext, i, j);
           pixelColor.add(this.#rayColor(ray, this.maxDepth, world));
         }
-        pixelColor.mul(this.#pixelSamplesScale);
-        writePpmColor(pixelColor);
+        pixelColor.mul(renderContext.pixelSamplesScale);
+        writeImageDataColor(renderTarget, i, j, pixelColor);
       }
     }
 
-    process.stderr.write("\rFin.                    \n");
+    console.log("Fin");
   }
 
-  #imageHeight: number;
-  #cameraCenter: Vec3;
-  #pixel00Loc: Vec3;
-  #pixelDeltaU: Vec3;
-  #pixelDeltaV: Vec3;
-  #pixelSamplesScale: number;
-  #u: Vec3;
-  #v: Vec3;
-  #w: Vec3;
-  #defocusDiskU: Vec3;
-  #defocusDiskV: Vec3;
+  #createRenderContext(renderTarget: ImageData): RenderContext {
+    const width = renderTarget.width;
+    const height = renderTarget.height;
 
-  #initialize(): void {
-    // Image
-    this.#imageHeight =
-      this.imageWidth / this.aspectRatio < 1
-        ? 1
-        : Math.floor(this.imageWidth / this.aspectRatio);
-
-    this.#cameraCenter = Object.freeze(this.lookFrom.clone());
+    this.cameraCenter = Object.freeze(this.lookFrom.clone());
 
     // Camera  x: right, y: up, z: forward
     const theta = degreesToRadians(this.vertFov);
     const h = Math.tan(theta / 2);
     const viewportHeight = 2 * h * this.focusDist;
-    const viewportWidth =
-      (viewportHeight * this.imageWidth) / this.#imageHeight;
+    const viewportWidth = (viewportHeight * width) / height;
 
-    this.#w = Object.freeze(Vec3.sub(this.lookFrom, this.lookAt).normalize());
-    this.#u = Object.freeze(Vec3.cross(this.viewUp, this.#w).normalize());
-    this.#v = Object.freeze(Vec3.cross(this.#w, this.#u));
+    const w = Object.freeze(Vec3.sub(this.lookFrom, this.lookAt).normalize());
+    const u = Object.freeze(Vec3.cross(this.viewUp, w).normalize());
+    const v = Object.freeze(Vec3.cross(w, u));
 
     // Viewport: u: right, v: down
     // Vectors across the horizontal and down the vertical viewport edges
-    const viewportUVec = Vec3.mul(this.#u, viewportWidth);
-    const viewportVVec = Vec3.negate(this.#v).mul(viewportHeight);
+    const viewportUVec = Vec3.mul(u, viewportWidth);
+    const viewportVVec = Vec3.negate(v).mul(viewportHeight);
 
     // Horizontal and vertical delta vectors from pixel to pixel
-    this.#pixelDeltaU = Object.freeze(Vec3.div(viewportUVec, this.imageWidth));
-    this.#pixelDeltaV = Object.freeze(
-      Vec3.div(viewportVVec, this.#imageHeight),
-    );
+    const pixelDeltaU = Object.freeze(Vec3.div(viewportUVec, width));
+    const pixelDeltaV = Object.freeze(Vec3.div(viewportVVec, height));
 
     // Location of upper left pixel
     const viewportUpperLeft = Vec3.sub(
-      this.#cameraCenter,
-      Vec3.mul(this.#w, this.focusDist),
+      this.cameraCenter,
+      Vec3.mul(w, this.focusDist),
     )
       .sub(Vec3.div(viewportUVec, 2))
       .sub(Vec3.div(viewportVVec, 2));
 
     const defocusRadius =
       this.focusDist * Math.tan(degreesToRadians(this.defocusAngle / 2));
-    this.#defocusDiskU = Object.freeze(Vec3.mul(this.#u, defocusRadius));
-    this.#defocusDiskV = Object.freeze(Vec3.mul(this.#v, defocusRadius));
+    const defocusDiskU = Object.freeze(Vec3.mul(u, defocusRadius));
+    const defocusDiskV = Object.freeze(Vec3.mul(v, defocusRadius));
 
-    this.#pixel00Loc = Vec3.add(this.#pixelDeltaU, this.#pixelDeltaV)
+    // this.#pixel00Loc = Vec3.add(this.#pixelDeltaU, this.#pixelDeltaV)
+    const pixel00Loc = Vec3.add(pixelDeltaU, pixelDeltaV)
       .mul(0.5)
       .add(viewportUpperLeft);
 
-    this.#pixelSamplesScale = 1 / this.samplesPerPixel;
+    return {
+      width,
+      height,
+      pixel00Loc,
+      pixelDeltaU,
+      pixelDeltaV,
+      pixelSamplesScale: 1 / this.samplesPerPixel,
+      u,
+      v,
+      w,
+      defocusDiskU,
+      defocusDiskV,
+    };
   }
 
   /** Generates a sample Ray inside the pixel square at i, j */
-  #getRay(i: number, j: number): Ray {
+  #getRay(context: RenderContext, i: number, j: number): Ray {
     let offset = this.#sampleSquare();
-    const u = Vec3.mul(this.#pixelDeltaU, i + offset.x);
-    const v = Vec3.mul(this.#pixelDeltaV, j + offset.y);
-    const pixelSample = Vec3.add(this.#pixel00Loc, u).add(v);
+    const u = Vec3.mul(context.pixelDeltaU, i + offset.x);
+    const v = Vec3.mul(context.pixelDeltaV, j + offset.y);
+    const pixelSample = Vec3.add(context.pixel00Loc, u).add(v);
 
     const rayOrigin =
-      this.defocusAngle <= 0 ? this.#cameraCenter : this.#defocusDiskSample();
+      this.defocusAngle <= 0
+        ? this.cameraCenter
+        : this.#defocusDiskSample(context);
     const rayDirection = pixelSample.sub(rayOrigin);
 
     return new Ray(rayOrigin, rayDirection);
   }
 
   /** Random point on camera defocus disk */
-  #defocusDiskSample() {
+  #defocusDiskSample(context: RenderContext) {
     let p = Vec3.randomInUnitDisk();
-    return Vec3.mul(this.#defocusDiskU, p.x)
-      .add(Vec3.mul(this.#defocusDiskV, p.y))
-      .add(this.#cameraCenter);
+    return Vec3.mul(context.defocusDiskU, p.x)
+      .add(Vec3.mul(context.defocusDiskV, p.y))
+      .add(this.cameraCenter);
   }
 
   /** Generates a random sample point within [-.5,-.5]-[+.5,+.5] unit square */
@@ -174,9 +185,19 @@ export class Camera {
   }
 }
 
-function writePpmColor(color: Color3) {
+function writeImageDataColor(
+  imageData: ImageData,
+  x: number,
+  y: number,
+  color: Color3,
+) {
   const gammaColor = Color3.linearToGamma(color);
   const intensity = new Interval(0, 0.999);
   const [ir, ig, ib] = gammaColor.to256Components(intensity);
-  process.stdout.write(`${ir} ${ig} ${ib}\n`);
+  const i = (y * imageData.width + x) * 4;
+
+  imageData.data[i + 0] = ir;
+  imageData.data[i + 1] = ig;
+  imageData.data[i + 2] = ib;
+  imageData.data[i + 3] = 255;
 }

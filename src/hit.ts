@@ -1,6 +1,7 @@
-import { Vec3 } from "./vec3.js";
-import { Ray } from "./ray.js";
-import { Material } from "./material.js";
+import { Vec3 } from "./vec3";
+import { Ray } from "./ray";
+import { type Material } from "./material";
+
 /**
  * Data about a hit on an object from a ray.
  */
