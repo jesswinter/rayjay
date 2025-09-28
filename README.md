@@ -4,6 +4,10 @@ Rayjay is a ray tracer written in Javascript following [Ray Tracing in One Weeke
 
 ## Changelog
 
+### Version 0.2.0
+
+Run in browser and render into canvas.
+
 ### Version 0.1.0
 
 Basic implementation of Ray Tracing in One Weekend as a commandline node app that outputs ppm format image.
