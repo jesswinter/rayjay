@@ -1,5 +1,5 @@
 import type { V3Tuple } from "./vec3";
-import type { Color3Tuple } from "./color3";
+import type { Color3 } from "./color3";
 
 export type TfWorld = {
   entities: TfEntity[];
@@ -9,7 +9,7 @@ export type TfMaterial = TfLambertian | TfDielectric | TfMetal;
 
 export type TfLambertian = {
   type: "lambertian";
-  albedo: Color3Tuple;
+  albedo: Color3;
 };
 
 export type TfDielectric = {
@@ -18,7 +18,7 @@ export type TfDielectric = {
 };
 export type TfMetal = {
   type: "metal";
-  albedo: Color3Tuple;
+  albedo: Color3;
   fuzz: number;
 };
 

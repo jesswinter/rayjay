@@ -3,7 +3,6 @@ import { EntityList } from "./entity-list";
 import { Sphere } from "./sphere";
 import { Camera } from "./camera";
 import { Lambertian, Metal, Dielectric, type Material } from "./material";
-import { tupleToColor3 } from "./color3";
 import type { TfWorld, TfMaterial } from "./transmission-format";
 import { createTfDemoScene } from "./scenes";
 
@@ -26,10 +25,10 @@ function createWorldFromTf(tf: TfWorld): EntityList {
   function tfToMaterial(tfMaterial: TfMaterial): Material {
     switch (tfMaterial.type) {
       case "lambertian":
-        return new Lambertian(tupleToColor3(tfMaterial.albedo));
+        return new Lambertian(tfMaterial.albedo);
 
       case "metal":
-        return new Metal(tupleToColor3(tfMaterial.albedo), tfMaterial.fuzz);
+        return new Metal(tfMaterial.albedo, tfMaterial.fuzz);
 
       case "dielectric":
         return new Dielectric(tfMaterial.refractionIndex);

@@ -1,6 +1,13 @@
 import { EntityList } from "./entity-list";
 import { Vec3 } from "./vec3";
-import { Color3 } from "./color3";
+import {
+  type Color3,
+  c3Add,
+  c3LinearToGamma,
+  c3Mul,
+  c3MulScalar,
+  c3To256Components,
+} from "./color3";
 import { Ray } from "./ray";
 import { Interval } from "./interval";
 import { type RenderStatusCallback } from "./renderer";
@@ -50,12 +57,15 @@ export class Camera {
       statusCallback(`Scanlines remaining: ${renderContext.height - j}`);
 
       for (let i = 0; i < renderContext.width; ++i) {
-        const pixelColor = new Color3(0, 0, 0);
+        let pixelColor: Color3 = [0, 0, 0];
         for (let sample = 0; sample < this.samplesPerPixel; ++sample) {
           const ray = this.#getRay(renderContext, i, j);
-          pixelColor.add(this.#rayColor(ray, this.maxDepth, world));
+          pixelColor = c3Add(
+            pixelColor,
+            this.#rayColor(ray, this.maxDepth, world),
+          );
         }
-        pixelColor.mul(renderContext.pixelSamplesScale);
+        pixelColor = c3MulScalar(pixelColor, renderContext.pixelSamplesScale);
         writeImageDataColor(renderTarget, i, j, pixelColor);
       }
     }
@@ -159,7 +169,7 @@ export class Camera {
    */
   #rayColor(ray: Ray, depth: number, world: EntityList): Color3 {
     if (depth <= 0) {
-      return new Color3(0, 0, 0);
+      return [0, 0, 0];
     }
     const hit = world.hit(ray, new Interval(0.001, Infinity));
     if (hit !== null) {
@@ -168,20 +178,20 @@ export class Camera {
         hit,
       );
       if (!wasScattered) {
-        return new Color3(0, 0, 0);
+        return [0, 0, 0];
       }
 
       const reflectedColor = this.#rayColor(scattered, depth - 1, world);
-      return Color3.mul(attenuation, reflectedColor);
+      return c3Mul(attenuation, reflectedColor);
     }
 
     // Nothing was hit. Render sky gradient
     const unitDir = Vec3.unit(ray.direction);
     const a = 0.5 * (unitDir.y + 1.0);
-    const topColor = new Color3(0.5, 0.7, 1.0);
-    const botColor = new Color3(1, 1, 1);
+    const topColor: Color3 = [0.5, 0.7, 1.0];
+    const botColor: Color3 = [1, 1, 1];
 
-    return topColor.mul(a).add(botColor.mul(1 - a));
+    return c3Add(c3MulScalar(topColor, a), c3MulScalar(botColor, 1 - a));
   }
 }
 
@@ -191,9 +201,9 @@ function writeImageDataColor(
   y: number,
   color: Color3,
 ) {
-  const gammaColor = Color3.linearToGamma(color);
+  const gammaColor = c3LinearToGamma(color);
   const intensity = new Interval(0, 0.999);
-  const [ir, ig, ib] = gammaColor.to256Components(intensity);
+  const [ir, ig, ib] = c3To256Components(gammaColor, intensity);
   const i = (y * imageData.width + x) * 4;
 
   imageData.data[i + 0] = ir;

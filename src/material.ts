@@ -1,6 +1,6 @@
 import { Ray } from "./ray";
 import { Hit } from "./hit";
-import { Color3 } from "./color3";
+import { type Color3 } from "./color3";
 import { Vec3 } from "./vec3";
 
 /**
@@ -102,7 +102,7 @@ export class Dielectric implements Material {
       direction = Vec3.refract(unitDirection, hit.normal, ri);
     }
 
-    return [true, new Color3(1, 1, 1), new Ray(hit.contact, direction)];
+    return [true, [1, 1, 1], new Ray(hit.contact, direction)];
   }
 
   static #reflectance(cosine: number, refractionIndex: number) {
