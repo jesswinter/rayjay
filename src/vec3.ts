@@ -104,7 +104,7 @@ export class Vec3 {
 
   static randomInUnitDisk(): Vec3 {
     while (true) {
-      let p = new Vec3(randomRange(-1, 1), randomRange(-1, 1), 0);
+      const p = new Vec3(randomRange(-1, 1), randomRange(-1, 1), 0);
       if (p.lengthSquared < 1) {
         return p;
       }

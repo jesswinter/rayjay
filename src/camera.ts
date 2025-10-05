@@ -50,9 +50,9 @@ export class Camera {
       statusCallback(`Scanlines remaining: ${renderContext.height - j}`);
 
       for (let i = 0; i < renderContext.width; ++i) {
-        let pixelColor = new Color3(0, 0, 0);
+        const pixelColor = new Color3(0, 0, 0);
         for (let sample = 0; sample < this.samplesPerPixel; ++sample) {
-          let ray = this.#getRay(renderContext, i, j);
+          const ray = this.#getRay(renderContext, i, j);
           pixelColor.add(this.#rayColor(ray, this.maxDepth, world));
         }
         pixelColor.mul(renderContext.pixelSamplesScale);
@@ -123,7 +123,7 @@ export class Camera {
 
   /** Generates a sample Ray inside the pixel square at i, j */
   #getRay(context: RenderContext, i: number, j: number): Ray {
-    let offset = this.#sampleSquare();
+    const offset = this.#sampleSquare();
     const u = Vec3.mul(context.pixelDeltaU, i + offset.x);
     const v = Vec3.mul(context.pixelDeltaV, j + offset.y);
     const pixelSample = Vec3.add(context.pixel00Loc, u).add(v);
@@ -139,7 +139,7 @@ export class Camera {
 
   /** Random point on camera defocus disk */
   #defocusDiskSample(context: RenderContext) {
-    let p = Vec3.randomInUnitDisk();
+    const p = Vec3.randomInUnitDisk();
     return Vec3.mul(context.defocusDiskU, p.x)
       .add(Vec3.mul(context.defocusDiskV, p.y))
       .add(this.cameraCenter);

@@ -59,7 +59,7 @@ export class Metal implements Material {
   }
 
   tryScatter(ray: Ray, hit: Hit): [boolean, Color3, Ray] {
-    let reflected = Vec3.reflect(ray.direction, hit.normal);
+    const reflected = Vec3.reflect(ray.direction, hit.normal);
     reflected.normalize().add(Vec3.randomUnit().mul(this.fuzz));
     const scatteredRay = new Ray(hit.contact, reflected);
     const wasScattered = Vec3.dot(scatteredRay.direction, hit.normal) > 0;
