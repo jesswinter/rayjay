@@ -1,6 +1,25 @@
 import { Interval } from "./interval";
 import { randomRange } from "./utils";
 
+export type Color3Tuple = [number, number, number];
+
+export function c3Mul(a: Color3Tuple, b: Color3Tuple): Color3Tuple {
+  return [a[0] * b[0], a[1] * b[1], a[2] * b[2]];
+}
+
+export function c3Random(): Color3Tuple {
+  return [Math.random(), Math.random(), Math.random()];
+}
+
+/** Generates a random Color3 where each component is between min and max */
+export function c3RandomComponentRange(min: number, max: number): Color3Tuple {
+  return [randomRange(min, max), randomRange(min, max), randomRange(min, max)];
+}
+
+export function tupleToColor3(t: Color3Tuple): Color3 {
+  return new Color3(t[0], t[1], t[2]);
+}
+
 /**
  * An opaque color with components in the range of 0-1
  */

@@ -1,5 +1,19 @@
 import { randomRange } from "./utils.js";
 
+export type V3Tuple = [number, number, number];
+
+export function v3Sub(a: V3Tuple, b: V3Tuple): V3Tuple {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+export function v3Length(v: V3Tuple): number {
+  return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+}
+
+export function tupleToVec3(t: V3Tuple): Vec3 {
+  return new Vec3(t[0], t[1], t[2]);
+}
+
 export class Vec3 {
   /** dot product of a * b */
   static dot(a: Vec3, b: Vec3): number {
