@@ -1,6 +1,7 @@
 import { randomRange } from "./utils.js";
 
 export type V3Tuple = [number, number, number];
+export type Vec2 = [number, number];
 
 export function v3Sub(a: V3Tuple, b: V3Tuple): V3Tuple {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];

@@ -1,5 +1,5 @@
-import type { V3Tuple } from "./vec3";
-import { v3Length, v3Sub } from "./vec3";
+import type { V3Tuple } from "./vec";
+import { v3Length, v3Sub } from "./vec";
 import { c3Mul, c3Random, c3RandomComponentRange } from "./color3";
 import { randomRange } from "./utils";
 import type { TfWorld } from "./transmission-format";

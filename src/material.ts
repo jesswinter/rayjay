@@ -1,7 +1,7 @@
 import { Ray } from "./ray";
 import { Hit } from "./hit";
 import { type Color3 } from "./color3";
-import { Vec3 } from "./vec3";
+import { Vec3 } from "./vec";
 
 /**
  * Surface material of an object

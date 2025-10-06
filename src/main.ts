@@ -9,20 +9,13 @@ renderCanvas.width = 480;
 renderCanvas.height = 360;
 appEl.appendChild(renderCanvas);
 
-statusEl.innerText = "Rendering...";
+const canvasContext = renderCanvas.getContext("2d")!;
+const renderData = canvasContext.createImageData(
+  renderCanvas.width,
+  renderCanvas.height,
+);
 
-setTimeout(() => {
-  const canvasContext = renderCanvas.getContext("2d")!;
-  const renderData = canvasContext.createImageData(
-    renderCanvas.width,
-    renderCanvas.height,
-  );
-
-  render(renderData, (status) => {
-    console.log(status);
-  });
-
+render(renderData, (renderTarget: ImageData, progress: number) => {
   canvasContext.putImageData(renderData, 0, 0);
-
-  statusEl.innerText = "Fin.";
-}, 0);
+  statusEl.innerText = `Progress: ${(progress * 100).toFixed(1)}%`;
+});

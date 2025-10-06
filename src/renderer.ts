@@ -1,4 +1,4 @@
-import { Vec3, tupleToVec3 } from "./vec3";
+import { Vec3, tupleToVec3 } from "./vec";
 import { EntityList } from "./entity-list";
 import { Sphere } from "./sphere";
 import { Camera } from "./camera";
@@ -6,7 +6,10 @@ import { Lambertian, Metal, Dielectric, type Material } from "./material";
 import type { TfWorld, TfMaterial } from "./transmission-format";
 import { createTfDemoScene } from "./scenes";
 
-export type RenderStatusCallback = (status: string) => void;
+export type RenderUpdatedCallback = (
+  renderedData: ImageData,
+  progress: number,
+) => void;
 
 function createWorldFromTf(tf: TfWorld): EntityList {
   const world = new EntityList();
@@ -38,7 +41,7 @@ function createWorldFromTf(tf: TfWorld): EntityList {
 
 export function render(
   renderTarget: ImageData,
-  statusCallback: RenderStatusCallback,
+  onUpdated: RenderUpdatedCallback,
 ) {
   const tfWorld = createTfDemoScene();
   const world = createWorldFromTf(tfWorld);
@@ -55,5 +58,5 @@ export function render(
   camera.defocusAngle = 0.6;
   camera.focusDist = 10;
 
-  camera.render(renderTarget, world, statusCallback);
+  camera.render(renderTarget, world, onUpdated);
 }

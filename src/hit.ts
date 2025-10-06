@@ -1,4 +1,4 @@
-import { Vec3 } from "./vec3";
+import { Vec3 } from "./vec";
 import { Ray } from "./ray";
 import { type Material } from "./material";
 

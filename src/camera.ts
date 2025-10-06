@@ -1,5 +1,5 @@
 import { EntityList } from "./entity-list";
-import { Vec3 } from "./vec3";
+import { Vec3, type Vec2 } from "./vec";
 import {
   type Color3,
   c3Add,
@@ -10,7 +10,7 @@ import {
 } from "./color3";
 import { Ray } from "./ray";
 import { Interval } from "./interval";
-import { type RenderStatusCallback } from "./renderer";
+import { type RenderUpdatedCallback } from "./renderer";
 import { degreesToRadians } from "./utils";
 
 type RenderContext = {
@@ -46,16 +46,36 @@ export class Camera {
   render(
     renderTarget: ImageData,
     world: EntityList,
-    statusCallback: RenderStatusCallback,
+    onUpdated: RenderUpdatedCallback,
   ) {
     Object.freeze(this.cameraCenter);
     const renderContext = this.#createRenderContext(renderTarget);
+    const totalPixels = renderContext.width * renderContext.height;
+    const pixelGen = this.renderPixels(renderContext, world);
 
-    statusCallback("Rendering");
+    const renderPixel = () => {
+      const pixelData = pixelGen.next();
+      if (pixelData.done) {
+        return;
+      }
 
+      const pos = pixelData.value.position;
+      writeImageDataColor(renderTarget, pos, pixelData.value.color);
+      onUpdated(
+        renderTarget,
+        (pos[0] + renderContext.width * pos[1]) / totalPixels,
+      );
+
+      setTimeout(renderPixel);
+    };
+    setTimeout(renderPixel);
+  }
+
+  *renderPixels(
+    renderContext: RenderContext,
+    world: EntityList,
+  ): Generator<{ position: Vec2; color: Color3 }> {
     for (let j = 0; j < renderContext.height; ++j) {
-      statusCallback(`Scanlines remaining: ${renderContext.height - j}`);
-
       for (let i = 0; i < renderContext.width; ++i) {
         let pixelColor: Color3 = [0, 0, 0];
         for (let sample = 0; sample < this.samplesPerPixel; ++sample) {
@@ -65,12 +85,12 @@ export class Camera {
             this.#rayColor(ray, this.maxDepth, world),
           );
         }
-        pixelColor = c3MulScalar(pixelColor, renderContext.pixelSamplesScale);
-        writeImageDataColor(renderTarget, i, j, pixelColor);
+        yield {
+          position: [i, j],
+          color: c3MulScalar(pixelColor, renderContext.pixelSamplesScale),
+        };
       }
     }
-
-    console.log("Fin");
   }
 
   #createRenderContext(renderTarget: ImageData): RenderContext {
@@ -197,14 +217,13 @@ export class Camera {
 
 function writeImageDataColor(
   imageData: ImageData,
-  x: number,
-  y: number,
+  position: Vec2,
   color: Color3,
 ) {
   const gammaColor = c3LinearToGamma(color);
   const intensity = new Interval(0, 0.999);
   const [ir, ig, ib] = c3To256Components(gammaColor, intensity);
-  const i = (y * imageData.width + x) * 4;
+  const i = (position[1] * imageData.width + position[0]) * 4;
 
   imageData.data[i + 0] = ir;
   imageData.data[i + 1] = ig;

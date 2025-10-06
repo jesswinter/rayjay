@@ -1,4 +1,4 @@
-import type { V3Tuple } from "./vec3";
+import type { V3Tuple } from "./vec";
 import type { Color3 } from "./color3";
 
 export type TfWorld = {
