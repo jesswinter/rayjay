@@ -1,4 +1,5 @@
-import { render } from "./renderer";
+import { RenderJob, type RenderUpdateEvent } from "./renderer";
+import { createTfDemoScene } from "./scenes";
 const appEl = document.getElementById("app")!;
 
 const statusEl = document.createElement("p");
@@ -15,7 +16,12 @@ const renderData = canvasContext.createImageData(
   renderCanvas.height,
 );
 
-render(renderData, (renderTarget: ImageData, progress: number) => {
-  canvasContext.putImageData(renderData, 0, 0);
-  statusEl.innerText = `Progress: ${(progress * 100).toFixed(1)}%`;
+const tfWorld = createTfDemoScene();
+const job = new RenderJob(renderData, tfWorld);
+job.addEventListener("render-update", (event) => {
+  console.log("render job updated");
+  const renderUpdateEvent = event as RenderUpdateEvent;
+  canvasContext.putImageData(renderUpdateEvent.target.renderTarget, 0, 0);
+  statusEl.innerText = `Progress: ${(renderUpdateEvent.detail.progress * 100).toFixed(1)}%`;
 });
+job.execute();

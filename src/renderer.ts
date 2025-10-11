@@ -16,7 +16,6 @@ import { Sphere } from "./sphere";
 import { Camera } from "./camera";
 import { Lambertian, Metal, Dielectric, type Material } from "./material";
 import type { TfWorld, TfMaterial } from "./transmission-format";
-import { createTfDemoScene } from "./scenes";
 import { degreesToRadians } from "./utils";
 import {
   c3Add,
@@ -29,10 +28,12 @@ import {
 import { Interval } from "./interval";
 import { Ray } from "./ray";
 
-export type RenderUpdatedCallback = (
-  renderedData: ImageData,
-  progress: number,
-) => void;
+export type RenderUpdateDetail = {
+  progress: number;
+};
+export type RenderUpdateEvent = CustomEvent<RenderUpdateDetail> & {
+  target: RenderJob;
+};
 
 function createWorldFromTf(tf: TfWorld): EntityList {
   const world = new EntityList();
@@ -78,20 +79,12 @@ type RenderContext = {
   defocusDiskV: Vec3;
 };
 
-export function render(
-  renderTarget: ImageData,
-  onUpdated: RenderUpdatedCallback,
-) {
-  const tfWorld = createTfDemoScene();
-  const job = new RenderJob(renderTarget, tfWorld);
-  job.render(onUpdated);
-}
-
-class RenderJob {
+export class RenderJob extends EventTarget {
   renderTarget: ImageData;
   tfWorld: TfWorld;
 
   constructor(renderTarget: ImageData, tfWorld: TfWorld) {
+    super();
     this.renderTarget = renderTarget;
     this.tfWorld = tfWorld;
   }
@@ -99,12 +92,7 @@ class RenderJob {
   /**
    * Render world to an image
    */
-  render(
-    // renderTarget: ImageData,
-    // world: EntityList,
-    onUpdated: RenderUpdatedCallback,
-  ) {
-    //const tfWorld = createTfDemoScene();
+  execute() {
     const world = createWorldFromTf(this.tfWorld);
 
     const camera = new Camera();
@@ -131,9 +119,12 @@ class RenderJob {
 
       const pos = pixelData.value.position;
       writeImageDataColor(this.renderTarget, pos, pixelData.value.color);
-      onUpdated(
-        this.renderTarget,
-        (pos[0] + renderContext.width * pos[1]) / totalPixels,
+      this.dispatchEvent(
+        new CustomEvent<RenderUpdateDetail>("render-update", {
+          detail: {
+            progress: (pos[0] + renderContext.width * pos[1]) / totalPixels,
+          },
+        }),
       );
 
       setTimeout(renderPixel);
@@ -206,7 +197,6 @@ function createRenderContext(
   const defocusDiskU = v3Mul(u, defocusRadius);
   const defocusDiskV = v3Mul(v, defocusRadius);
 
-  // this.#pixel00Loc = Vec3.add(this.#pixelDeltaU, this.#pixelDeltaV)
   const pixel00Loc = v3Add(
     v3Mul(v3Add(pixelDeltaU, pixelDeltaV), 0.5),
     viewportUpperLeft,
