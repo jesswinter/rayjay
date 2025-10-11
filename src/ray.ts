@@ -1,4 +1,4 @@
-import { Vec3 } from "./vec";
+import { v3Add, v3Mul, type Vec3 } from "./vec";
 
 export class Ray {
   origin: Vec3;
@@ -16,6 +16,6 @@ export class Ray {
    */
   at(t: number): Vec3 {
     // origin + t*dir
-    return Vec3.mul(this.direction, t).add(this.origin);
+    return v3Add(v3Mul(this.direction, t), this.origin);
   }
 }

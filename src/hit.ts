@@ -1,4 +1,4 @@
-import { Vec3 } from "./vec";
+import { v3Clone, v3Dot, v3Negate, type Vec3 } from "./vec";
 import { Ray } from "./ray";
 import { type Material } from "./material";
 
@@ -16,11 +16,12 @@ export class Hit {
     outwardNormal: Vec3,
     material: Material,
   ): Hit {
-    const isFrontFace = Vec3.dot(ray.direction, outwardNormal) < 0;
+    const isFrontFace = v3Dot(ray.direction, outwardNormal) < 0;
 
-    const normal = outwardNormal.clone();
-    if (!isFrontFace) normal.negate();
-
+    let normal = v3Clone(outwardNormal);
+    if (!isFrontFace) {
+      normal = v3Negate(normal);
+    }
     return new Hit(contact, normal, t, isFrontFace, material);
   }
 

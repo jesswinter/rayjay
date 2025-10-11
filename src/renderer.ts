@@ -1,4 +1,16 @@
-import { Vec3, tupleToVec3, type Vec2 } from "./vec";
+import {
+  v3Add,
+  v3Clone,
+  v3Cross,
+  v3Div,
+  v3Mul,
+  v3Negate,
+  v3Normalize,
+  v3RandomInUnitDisk,
+  v3Sub,
+  type Vec3,
+  type Vec2,
+} from "./vec";
 import { EntityList } from "./entity-list";
 import { Sphere } from "./sphere";
 import { Camera } from "./camera";
@@ -25,13 +37,7 @@ export type RenderUpdatedCallback = (
 function createWorldFromTf(tf: TfWorld): EntityList {
   const world = new EntityList();
   for (const obj of tf.entities) {
-    world.add(
-      new Sphere(
-        tupleToVec3(obj.center),
-        obj.radius,
-        tfToMaterial(obj.material),
-      ),
-    );
+    world.add(new Sphere(obj.center, obj.radius, tfToMaterial(obj.material)));
   }
 
   return world;
@@ -106,9 +112,9 @@ class RenderJob {
     camera.maxDepth = 50;
 
     camera.vertFov = 20; // 90
-    camera.lookFrom = new Vec3(13, 2, 3);
-    camera.lookAt = new Vec3(0, 0, 0);
-    camera.viewUp = new Vec3(0, 1, 0);
+    camera.lookFrom = [13, 2, 3];
+    camera.lookAt = [0, 0, 0];
+    camera.viewUp = [0, 1, 0];
 
     camera.defocusAngle = 0.6;
     camera.focusDist = 10;
@@ -165,7 +171,7 @@ function createRenderContext(
   const width = renderTarget.width;
   const height = renderTarget.height;
 
-  camera.cameraCenter = Object.freeze(camera.lookFrom.clone());
+  camera.cameraCenter = v3Clone(camera.lookFrom);
 
   // Camera  x: right, y: up, z: forward
   const theta = degreesToRadians(camera.vertFov);
@@ -173,36 +179,38 @@ function createRenderContext(
   const viewportHeight = 2 * h * camera.focusDist;
   const viewportWidth = (viewportHeight * width) / height;
 
-  const w = Object.freeze(Vec3.sub(camera.lookFrom, camera.lookAt).normalize());
-  const u = Object.freeze(Vec3.cross(camera.viewUp, w).normalize());
-  const v = Object.freeze(Vec3.cross(w, u));
+  const w = v3Normalize(v3Sub(camera.lookFrom, camera.lookAt));
+  const u = v3Normalize(v3Cross(camera.viewUp, w));
+  const v = v3Cross(w, u);
 
   // Viewport: u: right, v: down
   // Vectors across the horizontal and down the vertical viewport edges
-  const viewportUVec = Vec3.mul(u, viewportWidth);
-  const viewportVVec = Vec3.negate(v).mul(viewportHeight);
+  const viewportUVec = v3Mul(u, viewportWidth);
+  const viewportVVec = v3Mul(v3Negate(v), viewportHeight);
 
   // Horizontal and vertical delta vectors from pixel to pixel
-  const pixelDeltaU = Object.freeze(Vec3.div(viewportUVec, width));
-  const pixelDeltaV = Object.freeze(Vec3.div(viewportVVec, height));
+  const pixelDeltaU = v3Div(viewportUVec, width);
+  const pixelDeltaV = v3Div(viewportVVec, height);
 
   // Location of upper left pixel
-  const viewportUpperLeft = Vec3.sub(
-    camera.cameraCenter,
-    Vec3.mul(w, camera.focusDist),
-  )
-    .sub(Vec3.div(viewportUVec, 2))
-    .sub(Vec3.div(viewportVVec, 2));
+  const viewportUpperLeft = v3Sub(
+    v3Sub(
+      v3Sub(camera.cameraCenter, v3Mul(w, camera.focusDist)),
+      v3Div(viewportUVec, 2),
+    ),
+    v3Div(viewportVVec, 2),
+  );
 
   const defocusRadius =
     camera.focusDist * Math.tan(degreesToRadians(camera.defocusAngle / 2));
-  const defocusDiskU = Object.freeze(Vec3.mul(u, defocusRadius));
-  const defocusDiskV = Object.freeze(Vec3.mul(v, defocusRadius));
+  const defocusDiskU = v3Mul(u, defocusRadius);
+  const defocusDiskV = v3Mul(v, defocusRadius);
 
   // this.#pixel00Loc = Vec3.add(this.#pixelDeltaU, this.#pixelDeltaV)
-  const pixel00Loc = Vec3.add(pixelDeltaU, pixelDeltaV)
-    .mul(0.5)
-    .add(viewportUpperLeft);
+  const pixel00Loc = v3Add(
+    v3Mul(v3Add(pixelDeltaU, pixelDeltaV), 0.5),
+    viewportUpperLeft,
+  );
 
   return Object.freeze({
     width,
@@ -226,32 +234,31 @@ function createRenderContext(
 /** Generates a sample Ray inside the pixel square at i, j */
 function getRay(context: RenderContext, i: number, j: number): Ray {
   const offset = sampleSquare();
-  const u = Vec3.mul(context.pixelDeltaU, i + offset.x);
-  const v = Vec3.mul(context.pixelDeltaV, j + offset.y);
-  const pixelSample = Vec3.add(context.pixel00Loc, u).add(v);
+  const u = v3Mul(context.pixelDeltaU, i + offset[0]);
+  const v = v3Mul(context.pixelDeltaV, j + offset[1]);
+  const pixelSample = v3Add(v3Add(context.pixel00Loc, u), v);
 
   const rayOrigin =
     context.defocusAngle <= 0
       ? context.cameraCenter
       : defocusDiskSample(context);
-  const rayDirection = pixelSample.sub(rayOrigin);
+  const rayDirection = v3Sub(pixelSample, rayOrigin);
 
   return new Ray(rayOrigin, rayDirection);
 }
 
 /** Random point on camera defocus disk */
 function defocusDiskSample(context: RenderContext) {
-  const p = Vec3.randomInUnitDisk();
-  return Vec3.mul(context.defocusDiskU, p.x)
-    .add(Vec3.mul(context.defocusDiskV, p.y))
-    .add(context.cameraCenter);
+  const p = v3RandomInUnitDisk();
+  return v3Add(
+    v3Add(v3Mul(context.defocusDiskU, p[0]), v3Mul(context.defocusDiskV, p[1])),
+    context.cameraCenter,
+  );
 }
 
 /** Generates a random sample point within [-.5,-.5]-[+.5,+.5] unit square */
-// TODO(jw): sampleDisk
-function sampleSquare(): Vec3 {
-  return new Vec3(Math.random() - 0.5, Math.random() - 0.5, 0);
-}
+// TODO(jw): use disk instead of square
+const sampleSquare = (): Vec3 => [Math.random() - 0.5, Math.random() - 0.5, 0];
 
 /**
  * Cast a ray into the world and return color
@@ -278,8 +285,8 @@ function rayColor(ray: Ray, depth: number, world: EntityList): Color3 {
   }
 
   // Nothing was hit. Render sky gradient
-  const unitDir = Vec3.unit(ray.direction);
-  const a = 0.5 * (unitDir.y + 1.0);
+  const unitDir = v3Normalize(ray.direction);
+  const a = 0.5 * (unitDir[1] + 1.0);
   const topColor: Color3 = [0.5, 0.7, 1.0];
   const botColor: Color3 = [1, 1, 1];
 

@@ -1,7 +1,17 @@
 import { Ray } from "./ray";
 import { Hit } from "./hit";
 import { type Color3 } from "./color3";
-import { Vec3 } from "./vec";
+import {
+  v3Add,
+  v3Dot,
+  v3IsNearZero,
+  v3Mul,
+  v3Negate,
+  v3Normalize,
+  v3RandomUnit,
+  v3Reflect,
+  v3Refract,
+} from "./vec";
 
 /**
  * Surface material of an object
@@ -31,9 +41,9 @@ export class Lambertian implements Material {
   }
 
   tryScatter(ray: Ray, hit: Hit): [boolean, Color3, Ray] {
-    let scatterDirection = Vec3.randomUnit().add(hit.normal);
+    let scatterDirection = v3Add(v3RandomUnit(), hit.normal);
 
-    if (scatterDirection.isNearZero()) scatterDirection = hit.normal;
+    if (v3IsNearZero(scatterDirection)) scatterDirection = hit.normal;
 
     return [true, this.albedo, new Ray(hit.contact, scatterDirection)];
   }
@@ -59,10 +69,10 @@ export class Metal implements Material {
   }
 
   tryScatter(ray: Ray, hit: Hit): [boolean, Color3, Ray] {
-    const reflected = Vec3.reflect(ray.direction, hit.normal);
-    reflected.normalize().add(Vec3.randomUnit().mul(this.fuzz));
+    const reflected = v3Reflect(ray.direction, hit.normal);
+    v3Add(v3Normalize(reflected), v3Mul(v3RandomUnit(), this.fuzz));
     const scatteredRay = new Ray(hit.contact, reflected);
-    const wasScattered = Vec3.dot(scatteredRay.direction, hit.normal) > 0;
+    const wasScattered = v3Dot(scatteredRay.direction, hit.normal) > 0;
     return [wasScattered, this.albedo, scatteredRay];
   }
 }
@@ -82,11 +92,8 @@ export class Dielectric implements Material {
     const ri = hit.isFrontFace
       ? 1 / this.#refractionIndex
       : this.#refractionIndex;
-    const unitDirection = Vec3.unit(ray.direction);
-    const cosTheta = Math.min(
-      Vec3.dot(Vec3.negate(unitDirection), hit.normal),
-      1,
-    );
+    const unitDirection = v3Normalize(ray.direction);
+    const cosTheta = Math.min(v3Dot(v3Negate(unitDirection), hit.normal), 1);
     const sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
 
     let direction;
@@ -96,10 +103,10 @@ export class Dielectric implements Material {
       Dielectric.#reflectance(cosTheta, ri) > Math.random()
     ) {
       // cannot refract, so reflect
-      direction = Vec3.reflect(unitDirection, hit.normal);
+      direction = v3Reflect(unitDirection, hit.normal);
     } else {
       // refract
-      direction = Vec3.refract(unitDirection, hit.normal, ri);
+      direction = v3Refract(unitDirection, hit.normal, ri);
     }
 
     return [true, [1, 1, 1], new Ray(hit.contact, direction)];

@@ -1,4 +1,4 @@
-import type { V3Tuple } from "./vec";
+import type { Vec3 } from "./vec";
 import { v3Length, v3Sub } from "./vec";
 import { c3Mul, c3Random, c3RandomComponentRange } from "./color3";
 import { randomRange } from "./utils";
@@ -47,11 +47,11 @@ export function createTfDemoScene(): TfWorld {
     ],
   };
 
-  const offset: V3Tuple = [4, 0.2, 0];
+  const offset: Vec3 = [4, 0.2, 0];
   for (let a = -11; a < 11; ++a) {
     for (let b = -11; b < 11; ++b) {
       const chooseMat = Math.random();
-      const center: V3Tuple = [
+      const center: Vec3 = [
         a + 0.9 * Math.random(),
         0.2,
         b + 0.9 * Math.random(),

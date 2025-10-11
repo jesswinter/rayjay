@@ -1,4 +1,4 @@
-import type { V3Tuple } from "./vec";
+import type { Vec3 } from "./vec";
 import type { Color3 } from "./color3";
 
 export type TfWorld = {
@@ -28,7 +28,7 @@ export type TfEntity = TfSphere;
 
 export type TfSphere = {
   type: "sphere";
-  center: V3Tuple;
+  center: Vec3;
   radius: number;
   material: TfMaterial;
 };

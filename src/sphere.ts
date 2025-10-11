@@ -1,4 +1,4 @@
-import { Vec3 } from "./vec";
+import { v3Div, v3Dot, v3LengthSquared, v3Sub, type Vec3 } from "./vec";
 import { Ray } from "./ray";
 import { Hit } from "./hit";
 import { Interval } from "./interval";
@@ -21,10 +21,10 @@ export class Sphere implements Entity {
    * @param interval - interrval along ray to test
    */
   hit(ray: Ray, interval: Interval): Hit | null {
-    const oc = Vec3.sub(this.center, ray.origin);
-    const a = ray.direction.lengthSquared;
-    const h = Vec3.dot(ray.direction, oc);
-    const c = oc.lengthSquared - this.radius * this.radius;
+    const oc = v3Sub(this.center, ray.origin);
+    const a = v3LengthSquared(ray.direction);
+    const h = v3Dot(ray.direction, oc);
+    const c = v3LengthSquared(oc) - this.radius * this.radius;
     const discriminant = h * h - a * c;
 
     if (discriminant < 0) {
@@ -43,7 +43,7 @@ export class Sphere implements Entity {
     }
 
     const contact = ray.at(root);
-    const outwardNormal = Vec3.sub(contact, this.center).div(this.radius);
+    const outwardNormal = v3Div(v3Sub(contact, this.center), this.radius);
     return Hit.fromOutwardNormal(
       ray,
       root,

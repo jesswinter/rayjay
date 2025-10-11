@@ -4,7 +4,7 @@ import { randomRange } from "./utils";
 /**
  * An opaque color with components in the range of 0-1
  */
-export type Color3 = [number, number, number];
+export type Color3 = readonly [number, number, number];
 
 /** Converts a color from linear space to gamma space */
 export const c3LinearToGamma = (color: Color3): Color3 => [
