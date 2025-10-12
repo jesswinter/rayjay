@@ -108,47 +108,77 @@ export class RenderJob extends EventTarget {
     camera.focusDist = 10;
 
     const renderContext = createRenderContext(this.renderTarget, camera);
-    const totalPixels = renderContext.width * renderContext.height;
-    const pixelGen = this.renderPixels(renderContext, world);
+    const totalSamples =
+      renderContext.width *
+      renderContext.height *
+      renderContext.samplesPerPixel;
+    const pixelGen = renderPixelInc(renderContext, world);
+    let progress = 0.0;
+    const perf = window.performance;
+    let lastTs = perf.now();
 
     const renderPixel = () => {
-      const pixelData = pixelGen.next();
-      if (pixelData.done) {
-        return;
+      let pixelData = pixelGen.next();
+
+      while (!pixelData.done && lastTs + 1000.0 / 67 >= perf.now()) {
+        const pos = pixelData.value.position;
+        writeImageDataColor(this.renderTarget, pos, pixelData.value.color);
+        progress += 1.0;
+        pixelData = pixelGen.next();
       }
 
-      const pos = pixelData.value.position;
-      writeImageDataColor(this.renderTarget, pos, pixelData.value.color);
       this.dispatchEvent(
         new CustomEvent<RenderUpdateDetail>("render-update", {
           detail: {
-            progress: (pos[0] + renderContext.width * pos[1]) / totalPixels,
+            progress: progress++ / totalSamples,
           },
         }),
       );
+      lastTs = perf.now();
 
-      setTimeout(renderPixel);
+      if (!pixelData.done) {
+        setTimeout(renderPixel);
+      }
     };
     setTimeout(renderPixel);
   }
+}
 
-  *renderPixels(
-    renderContext: RenderContext,
-    world: EntityList,
-  ): Generator<{ position: Vec2; color: Color3 }> {
+type PixelContext = {
+  accumColor: Color3;
+};
+
+function* renderPixelInc(
+  renderContext: RenderContext,
+  world: EntityList,
+): Generator<{ position: Vec2; color: Color3 }> {
+  const sampleBuffer = new Array<PixelContext>(
+    renderContext.height * renderContext.width,
+  );
+  for (let i = 0; i < sampleBuffer.length; ++i) {
+    sampleBuffer[i] = {
+      accumColor: [0, 0, 0],
+    };
+  }
+
+  for (let sample = 1; sample <= renderContext.samplesPerPixel; ++sample) {
+    const pixelSamplesScale = 1 / sample;
+
     for (let j = 0; j < renderContext.height; ++j) {
       for (let i = 0; i < renderContext.width; ++i) {
-        let pixelColor: Color3 = [0, 0, 0];
-        for (let sample = 0; sample < renderContext.samplesPerPixel; ++sample) {
-          const ray = getRay(renderContext, i, j);
-          pixelColor = c3Add(
-            pixelColor,
-            rayColor(ray, renderContext.maxDepth, world),
-          );
-        }
+        const bufferIdx = j * renderContext.width + i;
+
+        const ray = getRay(renderContext, i, j);
+        sampleBuffer[bufferIdx].accumColor = c3Add(
+          sampleBuffer[bufferIdx].accumColor,
+          rayColor(ray, renderContext.maxDepth, world),
+        );
         yield {
           position: [i, j],
-          color: c3MulScalar(pixelColor, renderContext.pixelSamplesScale),
+          color: c3MulScalar(
+            sampleBuffer[bufferIdx].accumColor,
+            pixelSamplesScale,
+          ),
         };
       }
     }
