@@ -1,4 +1,4 @@
-import { RenderJob, type RenderUpdateEvent } from "./renderer";
+import { RenderJob } from "./renderer";
 import { createTfDemoScene } from "./scenes";
 const appEl = document.getElementById("app")!;
 
@@ -18,10 +18,20 @@ const renderData = canvasContext.createImageData(
 
 const tfWorld = createTfDemoScene();
 const job = new RenderJob(renderData, tfWorld);
-job.addEventListener("render-update", (event) => {
-  console.log("render job updated");
-  const renderUpdateEvent = event as RenderUpdateEvent;
-  canvasContext.putImageData(renderUpdateEvent.target.renderTarget, 0, 0);
-  statusEl.innerText = `Progress: ${(renderUpdateEvent.detail.progress * 100).toFixed(1)}%`;
-});
 job.execute();
+let lastProgressRendered = 0;
+requestAnimationFrame(function updateRender() {
+  if (job.completed) {
+    canvasContext.putImageData(job.renderTarget, 0, 0);
+    statusEl.innerText = "Completed";
+
+    return;
+  }
+  if (job.progress > lastProgressRendered) {
+    canvasContext.putImageData(job.renderTarget, 0, 0);
+    statusEl.innerText = `Progress: ${(job.progress * 100).toFixed(1)}%`;
+    lastProgressRendered = job.progress;
+  }
+
+  requestAnimationFrame(updateRender);
+});

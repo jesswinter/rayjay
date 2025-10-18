@@ -28,13 +28,6 @@ import {
 import { Interval } from "./interval";
 import { Ray } from "./ray";
 
-export type RenderUpdateDetail = {
-  progress: number;
-};
-export type RenderUpdateEvent = CustomEvent<RenderUpdateDetail> & {
-  target: RenderJob;
-};
-
 function createWorldFromTf(tf: TfWorld): EntityList {
   const world = new EntityList();
   for (const obj of tf.entities) {
@@ -83,16 +76,36 @@ export class RenderJob extends EventTarget {
   renderTarget: ImageData;
   tfWorld: TfWorld;
 
+  #progress: number;
+  #totalSamples: number;
+
   constructor(renderTarget: ImageData, tfWorld: TfWorld) {
     super();
     this.renderTarget = renderTarget;
     this.tfWorld = tfWorld;
+
+    this.#progress = 0.0;
+    this.#totalSamples = 0;
+  }
+
+  get started(): boolean {
+    return this.#totalSamples !== 0;
+  }
+
+  get progress(): number {
+    return this.#totalSamples === 0 ? 0 : this.#progress / this.#totalSamples;
+  }
+
+  get completed(): boolean {
+    return this.#totalSamples !== 0 && this.#progress === this.#totalSamples;
   }
 
   /**
    * Render world to an image
    */
-  execute() {
+  async execute() {
+    if (this.started) return;
+
     const world = createWorldFromTf(this.tfWorld);
 
     const camera = new Camera();
@@ -108,39 +121,30 @@ export class RenderJob extends EventTarget {
     camera.focusDist = 10;
 
     const renderContext = createRenderContext(this.renderTarget, camera);
-    const totalSamples =
+    this.#totalSamples =
       renderContext.width *
       renderContext.height *
       renderContext.samplesPerPixel;
     const pixelGen = renderPixelInc(renderContext, world);
-    let progress = 0.0;
     const perf = window.performance;
     let lastTs = perf.now();
 
-    const renderPixel = () => {
-      let pixelData = pixelGen.next();
+    let pixelData = pixelGen.next();
+
+    while (!pixelData.done) {
+      await new Promise((resolve) => setTimeout(resolve));
 
       while (!pixelData.done && lastTs + 1000.0 / 67 >= perf.now()) {
         const pos = pixelData.value.position;
         writeImageDataColor(this.renderTarget, pos, pixelData.value.color);
-        progress += 1.0;
+        this.#progress += 1.0;
         pixelData = pixelGen.next();
       }
 
-      this.dispatchEvent(
-        new CustomEvent<RenderUpdateDetail>("render-update", {
-          detail: {
-            progress: progress++ / totalSamples,
-          },
-        }),
-      );
       lastTs = perf.now();
+    }
 
-      if (!pixelData.done) {
-        setTimeout(renderPixel);
-      }
-    };
-    setTimeout(renderPixel);
+    this.dispatchEvent(new Event("render-complete"));
   }
 }
 
