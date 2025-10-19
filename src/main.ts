@@ -1,4 +1,4 @@
-import { RenderJob } from "./renderer";
+import Renderer from "./renderer";
 import { createTfDemoScene } from "./scenes";
 const appEl = document.getElementById("app")!;
 
@@ -10,28 +10,15 @@ renderCanvas.width = 480;
 renderCanvas.height = 360;
 appEl.appendChild(renderCanvas);
 
-const canvasContext = renderCanvas.getContext("2d")!;
-const renderData = canvasContext.createImageData(
-  renderCanvas.width,
-  renderCanvas.height,
-);
+const renderer = new Renderer(renderCanvas);
 
 const tfWorld = createTfDemoScene();
-const job = new RenderJob(renderData, tfWorld);
-job.execute();
-let lastProgressRendered = 0;
+renderer.render(tfWorld);
 requestAnimationFrame(function updateRender() {
-  if (job.completed) {
-    canvasContext.putImageData(job.renderTarget, 0, 0);
+  if (renderer.isRendering) {
+    statusEl.innerText = `Progress: ${(renderer.renderProgress * 100).toFixed(2)}%`;
+    requestAnimationFrame(updateRender);
+  } else {
     statusEl.innerText = "Completed";
-
-    return;
   }
-  if (job.progress > lastProgressRendered) {
-    canvasContext.putImageData(job.renderTarget, 0, 0);
-    statusEl.innerText = `Progress: ${(job.progress * 100).toFixed(1)}%`;
-    lastProgressRendered = job.progress;
-  }
-
-  requestAnimationFrame(updateRender);
 });
